@@ -134,6 +134,12 @@
 
 \setlist[itemize]{leftmargin=\dimexpr\bodyindent+1em, topsep=2pt, itemsep=1pt, parsep=0pt, label=\color{accent}\textbullet}
 
+% Sub-role heading within a single job entry (e.g. dual-hat responsibilities)
+\newcommand{\subrole}[1]{%
+  \par\vspace{4pt}\noindent\hspace*{\bodyindent}%
+  \textbf{\color{accent}\small #1}\par\vspace{-2pt}%
+}
+
 % Highlight tag row beneath job/project title — appears outside bullet list
 % #1=label (e.g. Stack, Acquired Skills)  #2=content
 \newcommand{\stackline}[2]{%
@@ -151,8 +157,8 @@
 
 %-------- HEADER --------
 \begin{center}
-    {\Huge \textbf{Sadig Akhund}} \\[2pt]
-    {\large \color{accent} Data Engineer} \\[6pt]
+    {\huge \textbf{\MakeUppercase{Sadig Akhund}}} \\[3pt]
+    {\Large \color{accent} Data Engineer} \\[6pt]
     {\small
         \faPhone\ +994 70 318 59 49 \quad
         \faEnvelope\ \href{mailto:sadigaxund@gmail.com}{sadigaxund@gmail.com} \quad
@@ -161,28 +167,32 @@
     }
 \end{center}
 
-%-------- SUMMARY --------
-\section{Summary}
-\small Data Engineer with 3+ years building large-scale data pipelines, warehouses, and distributed systems. Delivered production-grade ETL infrastructure processing hundreds of millions of records for government and financial clients. Core expertise: \textbf{Apache Spark, Kafka, Iceberg, Trino}, cloud platforms, and full-stack data platform development. Author and maintainer of an open-source Python ETL framework.
+%-------- SUMMARY (no header — flows from contact block) --------
+\vspace{6pt}
+{\small Data Engineer with 3+ years across platform and delivery --- integrated \textbf{Apache Spark, Iceberg, and Trino} into an in-house orchestration platform, and shipped lakehouse pipelines processing tens of millions of records for government and financial clients.\par}
 
 %-------- EXPERIENCE --------
 \section{Experience}
 
 \jobheading{icons/KDM.jpg}{KDM Force}{Rome, Italy}{Data Engineer (Remote)}{Jun 2022 -- Nov 2025}
-\stackline{Stack}{Apache Spark, Kafka, Iceberg, Trino, Hive Metastore, PostgreSQL, Redis, MS SQL Server, Dataiku, RHEL}
+\subrole{Platform Engineering --- Fyrefuse orchestration platform}
 \begin{itemize}
     \small
-    \item Built end-to-end data ingestion pipelines from scratch using \textbf{Apache Spark} and the Fyrefuse orchestration platform, loading OTA data into a MS SQL Server warehouse for the \textbf{Ministry of Tourism of Saudi Arabia}.
-    \item Designed a warehouse schema supporting \textbf{80M+ customer reviews} and multi-year listing metadata across \textbf{18 business-critical tables}, powering national tourism analytics.
-    \item Integrated \textbf{Trino, Hive Metastore, and Apache Iceberg} with object storage, opening up federated analytical queries over historical data without re-ingesting to the warehouse.
+    \item Researched and integrated \textbf{Apache Iceberg, Hive Metastore, Trino, PostgreSQL, and Apache Spark} into the in-house Fyrefuse platform, opening federated lakehouse queries over object storage without re-ingesting to the warehouse.
     \item Built a \textbf{viewport-aware caching layer} between the application frontend and Trino-backed sources --- preloaded pages around the user's scroll window in both directions, eliminating perceived load time on multi-million-row CSV-style tables.
     \item Selected \textbf{PostgreSQL} over Redis as the cache backend after benchmarking: Redis covered only key-value access while users needed sort, filter, aggregation, and full-text search; Postgres delivered all four plus \textbf{sub-second write times for 1M records} after switching the ingest path from \texttt{INSERT}/bulk-insert to \textbf{\texttt{COPY}}.
+\end{itemize}
+\subrole{Delivery --- Ministry of Tourism of Saudi Arabia}
+\begin{itemize}
+    \small
+    \item Designed multi-source OTA ingestion: extraction scripts published to \textbf{Apache Kafka} on standardized topics (decoupling ingest from transform, enabling replay), consumed by \textbf{Spark} pipelines orchestrated through Fyrefuse, landing in a \textbf{MS SQL Server} warehouse.
+    \item Modeled the warehouse schema for \textbf{80M+ customer reviews} and multi-year listing metadata across \textbf{18 business-critical tables}, applying dimensional modeling and slowly-changing-dimension patterns to power national tourism analytics.
     \item Engineered adaptive error handling for unreliable OTA providers (rate-limit backoff, schema drift detection, dead-letter queue), eliminating routine manual intervention.
     \item Owned ETL workflow governance in \textbf{Dataiku} --- parameter file management, log auditing, pipeline observability across all ingestion jobs.
 \end{itemize}
+\stackline{Stack}{Apache Spark, Kafka, Iceberg, Trino, Hive Metastore, PostgreSQL, Redis, MS SQL Server, Dataiku, RHEL}
 
 \jobheading{icons/unibank.png}{Unibank}{Baku, Azerbaijan}{Data Engineer (Intern)}{Oct 2021 -- May 2022}
-\stackline{Stack}{Apache Spark, Apache NiFi, Elasticsearch, Logstash, Kibana, Python, FastAPI, MongoDB, InfluxDB, Snowflake}
 \begin{itemize}
     \small
     \item Studied and documented the bank's production \textbf{push-notification telemetry pipeline} (mobile app $\rightarrow$ \textbf{Apache NiFi} ingestion $\rightarrow$ \textbf{Apache Spark} enrichment $\rightarrow$ \textbf{ELK stack}), surfacing schema gaps and partition hotspots to the platform team.
@@ -190,20 +200,30 @@
     \item Built a \textbf{FastAPI} service that exposed enriched notification metrics to internal stakeholders, replacing manual ad-hoc Elasticsearch queries.
     \item Benchmarked \textbf{InfluxDB, Snowflake, and MongoDB} as candidate stores for time-series and document workloads, producing a feasibility report that informed the bank's analytics roadmap.
 \end{itemize}
+\stackline{Stack}{Apache Spark, Apache NiFi, Elasticsearch, Logstash, Kibana, Python, FastAPI, MongoDB, InfluxDB, Snowflake}
+
+%-------- EDUCATION --------
+\needspace{6\baselineskip}
+\section{Education}
+\eduheading{icons/GWU.png}{George Washington University}{M.Sc., Computer Science \& Data Analytics}{2021 -- 2023}
+\hspace*{-2pt}\eduheading{icons/ADA.png}{ADA University}{B.Sc., Computer Engineering}{2017 -- 2021}
+\vspace{4pt}
+
+\newpage
 
 %-------- PROJECTS --------
 \section{Projects}
 
-\iconentry{icons/aqueduct.png}{\textbf{Aqueduct} \textcolor{subtle}{$\cdot$ Declarative Spark engine with LLM-driven self-healing} \quad \href{https://github.com/sadigaxund/Aqueduct}{\faGithub\ GitHub}}{Apr 2026 -- Present}
-\stackline{Acquired Skills}{Apache Spark, Apache Airflow, Distributed Computing, LLM Agents, CI/CD, Observability, Open-Source}
+\iconentry{icons/aqueduct.png}{\textbf{Aqueduct} \textcolor{subtle}{$\cdot$ Declarative Spark engine with agentic self-healing} \quad \href{https://github.com/sadigaxund/Aqueduct}{\faGithub\ GitHub}}{Feb 2026 -- Present}
 \begin{itemize}
     \small
-    \item Designed and shipped a \textbf{declarative pipeline engine} (Parser $\rightarrow$ Compiler $\rightarrow$ Executor $\rightarrow$ Surveyor) replacing imperative PySpark with version-controlled YAML Blueprints. Released \textbf{1.0.0 to PyPI} as \texttt{aqueduct-core}.
+    \item Designed and shipped a \textbf{declarative pipeline engine} (Parser $\rightarrow$ Compiler $\rightarrow$ Executor $\rightarrow$ Surveyor) replacing imperative PySpark with version-controlled YAML Blueprints. Released \textbf{1.0.0 to PyPI} as \href{https://pypi.org/project/aqueduct-core/}{\texttt{aqueduct-core}}.
     \item Built a multi-provider \textbf{LLM self-healing agent loop} that diagnoses failed Spark runs from a structured \texttt{FailureContext} and emits validated patches via a \textbf{10-op PatchSpec grammar}; deterministic guardrails + provenance-aware prompts cut hallucination.
     \item Shipped \textbf{first-class Apache Airflow integration}: drop-in \texttt{AqueductOperator} + deferred-pattern sensors; supports human/CI healing modes via structured exit codes. Replaces the imperative-Spark layer underneath existing orchestration.
-    \item Engineered \textbf{zero-cost observability}: per-module metrics via \texttt{DataFrame.observe()} + \texttt{SparkListener}, column-level lineage via \textbf{sqlglot}, embedded DuckDB store --- no extra Spark actions on the critical path.
-    \item Implemented \textbf{pluggable persistence} (DuckDB, Postgres, Redis behind a Store API), multi-cloud secrets dispatch (AWS / GCP / Azure), structured Spark error extraction, and a two-tier benchmark harness for prompt regression detection in CI.
+    \item Engineered \textbf{zero-overhead observability} --- pipeline health, performance metrics, and column-level data lineage tracked automatically with no measurable performance cost, built on Spark's native instrumentation hooks and an embedded analytical database.
+    \item Implemented \textbf{pluggable persistence} (DuckDB, Postgres, Redis behind a Store API), multi-cloud secrets dispatch (AWS / GCP / Azure), structured Spark error extraction, and a 2-tier benchmark harness for prompt regression detection in CI.
 \end{itemize}
+\stackline{Acquired Skills}{Apache Spark, Apache Airflow, DSL \& Compiler Design, LLM Agents, Prompt Engineering, DuckDB, Data Lineage, Platform Engineering, Open-Source Maintainership}
 
 %-------- CERTIFICATIONS --------
 \needspace{5\baselineskip}
@@ -212,12 +232,6 @@
 \iconentry{icons/google.png}{\textbf{Google Data Analytics Professional Certificate} \textcolor{subtle}{$\cdot$} \href{https://www.credly.com/badges/de618cee-0460-4d61-971b-2813931eb9c0/public_url}{Verify on Credly}}{Apr 2022}
 \vspace{4pt}
 
-%-------- EDUCATION --------
-\needspace{6\baselineskip}
-\section{Education}
-\eduheading{icons/GWU.png}{George Washington University \& ADA University}{M.Sc., Computer Science \& Data Analytics}{2021 -- 2023}
-\eduheading{icons/ADA.png}{ADA University}{B.Sc., Computer Engineering}{2017 -- 2021}
-\vspace{4pt}
 
 %-------- SKILLS --------
 \needspace{8\baselineskip}
@@ -231,7 +245,7 @@
     LLM \& Agents       & Anthropic, OpenAI, Ollama, agent loops, prompt engineering, structured output \\
     Backend \& Tools    & FastAPI, Django, Pydantic, Click, sqlglot, Git, REST APIs \\
     Analytics \& BI     & Looker, Superset, Grafana, Metabase, Data Modeling \\
-    Spoken Languages    & English (Proficient) \quad Russian (Advanced) \quad Azerbaijani (Native) \\
+    Spoken Languages    & English (Proficient), Russian (Advanced), Azerbaijani (Native) \\
 \end{tabularx}
 
 \end{document}
