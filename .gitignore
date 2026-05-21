@@ -1,0 +1,31 @@
+# Whitelist approach: ignore all, then allow specific
+*
+
+# Allow descending into directories
+!*/
+
+# Allow source + output
+!*.tex
+!*.pdf
+
+# Allow scripts + repo config
+!scripts/*.sh
+!.gitignore
+!icons/*
+!.latexmkrc
+!README.md
+
+# Re-ignore build artifacts even if matched above
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.toc
+
+.latexmkrc
+
+tmp/

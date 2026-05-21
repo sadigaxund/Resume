@@ -1,0 +1,237 @@
+%-------------------------
+% Resume in LaTeX
+% Author: Sadig Akhund
+% Modern sans-serif layout, ATS-friendly
+%-------------------------
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage{fontspec}
+\setmainfont{Ubuntu}[
+    Path=/home/sakhund/.local/share/fonts/,
+    Extension=.ttf,
+    UprightFont=Ubuntu-Regular,
+    BoldFont=Ubuntu-Bold,
+    ItalicFont=Ubuntu-Italic,
+    BoldItalicFont=Ubuntu-BoldItalic,
+    Numbers=Monospaced
+]
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{needspace}
+
+\geometry{
+    letterpaper,
+    left=0.6in,
+    right=0.6in,
+    top=0.55in,
+    bottom=0.55in
+}
+
+% Accent color
+\definecolor{accent}{HTML}{1F4E79}
+\definecolor{subtle}{HTML}{555555}
+\definecolor{rule}{HTML}{BBBBBB}
+
+\hypersetup{
+    colorlinks=true,
+    urlcolor=accent,
+    linkcolor=accent
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Section formatting — colored bold, thin rule
+\titleformat{\section}
+  {\Large\bfseries\color{accent}}
+  {}{0em}
+  {}
+  [\vspace{2pt}\color{rule}\titlerule\color{black}]
+\titlespacing*{\section}{0pt}{12pt}{10pt}
+
+% Custom commands
+% Indent width for body content (icon column)
+\newlength{\bodyindent}
+\setlength{\bodyindent}{12mm}
+
+% #1=icon path  #2=company  #3=location  #4=role  #5=dates
+\newcommand{\jobheading}[5]{%
+  \vspace{8pt}
+  \noindent
+  \begin{minipage}[c]{\bodyindent}
+    \centering
+    \includegraphics[width=8mm,height=8mm,keepaspectratio]{#1}
+  \end{minipage}%
+  \begin{minipage}[c]{\dimexpr\textwidth-\bodyindent}
+    \textbf{\large #2}\hfill\textcolor{subtle}{#3}\\
+    \textcolor{subtle}{#4}\hfill\textcolor{subtle}{#5}
+  \end{minipage}
+  \vspace{-4pt}
+}
+
+% Entry without icon, but aligned with iconned entries
+% #1=title  #2=date
+\newcommand{\plainheading}[2]{%
+  \vspace{4pt}
+  \noindent
+  \hspace{\bodyindent}%
+  \begin{minipage}[t]{\dimexpr\textwidth-\bodyindent}
+    \vspace{0pt}
+    \begin{tabular*}{\linewidth}{l@{\extracolsep{\fill}}r}
+      #1 & \textcolor{subtle}{#2} \\
+    \end{tabular*}
+  \end{minipage}
+  \vspace{-2pt}
+}
+
+% Entry with icon, single-line (for certs, projects)
+% #1=icon  #2=title  #3=date
+\newcommand{\iconentry}[3]{%
+  \vspace{4pt}
+  \noindent
+  \begin{minipage}[c]{\bodyindent}
+    \centering
+    \includegraphics[width=8mm,height=8mm,keepaspectratio]{#1}
+  \end{minipage}%
+  \begin{minipage}[c]{\dimexpr\textwidth-\bodyindent}
+    #2\hfill\textcolor{subtle}{#3}
+  \end{minipage}
+  \vspace{-2pt}
+}
+
+\newcommand{\projheading}[2]{%
+  \vspace{2pt}
+  \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+    #1 & \textcolor{subtle}{#2} \\
+  \end{tabular*}
+  \vspace{-6pt}
+}
+
+% #1=icon  #2=school  #3=degree  #4=dates
+\newcommand{\eduheading}[4]{%
+  \vspace{4pt}
+  \noindent
+  \begin{minipage}[c]{\bodyindent}
+    \centering
+    \includegraphics[width=8mm,height=8mm,keepaspectratio]{#1}
+  \end{minipage}%
+  \begin{minipage}[c]{\dimexpr\textwidth-\bodyindent}
+    \textbf{#2}\hfill\textcolor{subtle}{#4}\\
+    \textcolor{subtle}{#3}
+  \end{minipage}
+  \vspace{-2pt}
+}
+
+\setlist[itemize]{leftmargin=\dimexpr\bodyindent+1em, topsep=2pt, itemsep=1pt, parsep=0pt, label=\color{accent}\textbullet}
+
+% Highlight tag row beneath job/project title — appears outside bullet list
+% #1=label (e.g. Stack, Acquired Skills)  #2=content
+\newcommand{\stackline}[2]{%
+  \par\vspace{3pt}
+  \noindent\hspace*{\bodyindent}%
+  \begin{minipage}[t]{\dimexpr\linewidth-\bodyindent}
+    \small\textbf{\color{accent}#1:}~\textcolor{subtle}{#2}
+  \end{minipage}\par
+  \vspace{1pt}
+}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+%-------- HEADER --------
+\begin{center}
+    {\Huge \textbf{Sadig Akhund}} \\[2pt]
+    {\large \color{accent} Data Engineer} \\[6pt]
+    {\small
+        \faPhone\ +994 70 318 59 49 \quad
+        \faEnvelope\ \href{mailto:sadigaxund@gmail.com}{sadigaxund@gmail.com} \quad
+        \faLinkedin\ \href{https://linkedin.com/in/sakhund}{/in/sakhund} \quad
+        \faMapMarker*\ Baku, Azerbaijan
+    }
+\end{center}
+
+%-------- SUMMARY --------
+\section{Summary}
+\small Data Engineer with 3+ years building large-scale data pipelines, warehouses, and distributed systems. Delivered production-grade ETL infrastructure processing hundreds of millions of records for government and financial clients. Core expertise: \textbf{Apache Spark, Kafka, Iceberg, Trino}, cloud platforms, and full-stack data platform development. Author and maintainer of an open-source Python ETL framework.
+
+%-------- EXPERIENCE --------
+\section{Experience}
+
+\jobheading{icons/KDM.jpg}{KDM Force}{Rome, Italy}{Data Engineer (Remote)}{Jun 2022 -- Nov 2025}
+\stackline{Stack}{Apache Spark, Kafka, Iceberg, Trino, Hive Metastore, PostgreSQL, Redis, MS SQL Server, Dataiku, RHEL}
+\begin{itemize}
+    \small
+    \item Built end-to-end data ingestion pipelines from scratch using \textbf{Apache Spark} and the Fyrefuse orchestration platform, loading OTA data into a MS SQL Server warehouse for the \textbf{Ministry of Tourism of Saudi Arabia}.
+    \item Designed a warehouse schema supporting \textbf{80M+ customer reviews} and multi-year listing metadata across \textbf{18 business-critical tables}, powering national tourism analytics.
+    \item Integrated \textbf{Trino, Hive Metastore, and Apache Iceberg} with object storage, opening up federated analytical queries over historical data without re-ingesting to the warehouse.
+    \item Built a \textbf{viewport-aware caching layer} between the application frontend and Trino-backed sources --- preloaded pages around the user's scroll window in both directions, eliminating perceived load time on multi-million-row CSV-style tables.
+    \item Selected \textbf{PostgreSQL} over Redis as the cache backend after benchmarking: Redis covered only key-value access while users needed sort, filter, aggregation, and full-text search; Postgres delivered all four plus \textbf{sub-second write times for 1M records} after switching the ingest path from \texttt{INSERT}/bulk-insert to \textbf{\texttt{COPY}}.
+    \item Engineered adaptive error handling for unreliable OTA providers (rate-limit backoff, schema drift detection, dead-letter queue), eliminating routine manual intervention.
+    \item Owned ETL workflow governance in \textbf{Dataiku} --- parameter file management, log auditing, pipeline observability across all ingestion jobs.
+\end{itemize}
+
+\jobheading{icons/unibank.png}{Unibank}{Baku, Azerbaijan}{Data Engineer (Intern)}{Oct 2021 -- May 2022}
+\stackline{Stack}{Apache Spark, Apache NiFi, Elasticsearch, Logstash, Kibana, Python, FastAPI, MongoDB, InfluxDB, Snowflake}
+\begin{itemize}
+    \small
+    \item Studied and documented the bank's production \textbf{push-notification telemetry pipeline} (mobile app $\rightarrow$ \textbf{Apache NiFi} ingestion $\rightarrow$ \textbf{Apache Spark} enrichment $\rightarrow$ \textbf{ELK stack}), surfacing schema gaps and partition hotspots to the platform team.
+    \item Refactored middleware log schema feeding Logstash, cutting per-event payload size and standardizing the format consumed by Spark enrichment jobs --- reduced storage cost and improved Kibana query latency.
+    \item Built a \textbf{FastAPI} service that exposed enriched notification metrics to internal stakeholders, replacing manual ad-hoc Elasticsearch queries.
+    \item Benchmarked \textbf{InfluxDB, Snowflake, and MongoDB} as candidate stores for time-series and document workloads, producing a feasibility report that informed the bank's analytics roadmap.
+\end{itemize}
+
+%-------- PROJECTS --------
+\section{Projects}
+
+\iconentry{icons/aqueduct.png}{\textbf{Aqueduct} \textcolor{subtle}{$\cdot$ Declarative Spark engine with LLM-driven self-healing} \quad \href{https://github.com/sadigaxund/Aqueduct}{\faGithub\ GitHub}}{Apr 2026 -- Present}
+\stackline{Acquired Skills}{Apache Spark, Apache Airflow, Distributed Computing, LLM Agents, CI/CD, Observability, Open-Source}
+\begin{itemize}
+    \small
+    \item Designed and shipped a \textbf{declarative pipeline engine} (Parser $\rightarrow$ Compiler $\rightarrow$ Executor $\rightarrow$ Surveyor) replacing imperative PySpark with version-controlled YAML Blueprints. Released \textbf{1.0.0 to PyPI} as \texttt{aqueduct-core}.
+    \item Built a multi-provider \textbf{LLM self-healing agent loop} that diagnoses failed Spark runs from a structured \texttt{FailureContext} and emits validated patches via a \textbf{10-op PatchSpec grammar}; deterministic guardrails + provenance-aware prompts cut hallucination.
+    \item Shipped \textbf{first-class Apache Airflow integration}: drop-in \texttt{AqueductOperator} + deferred-pattern sensors; supports human/CI healing modes via structured exit codes. Replaces the imperative-Spark layer underneath existing orchestration.
+    \item Engineered \textbf{zero-cost observability}: per-module metrics via \texttt{DataFrame.observe()} + \texttt{SparkListener}, column-level lineage via \textbf{sqlglot}, embedded DuckDB store --- no extra Spark actions on the critical path.
+    \item Implemented \textbf{pluggable persistence} (DuckDB, Postgres, Redis behind a Store API), multi-cloud secrets dispatch (AWS / GCP / Azure), structured Spark error extraction, and a two-tier benchmark harness for prompt regression detection in CI.
+\end{itemize}
+
+%-------- CERTIFICATIONS --------
+\needspace{5\baselineskip}
+\section{Certifications}
+
+\iconentry{icons/google.png}{\textbf{Google Data Analytics Professional Certificate} \textcolor{subtle}{$\cdot$} \href{https://www.credly.com/badges/de618cee-0460-4d61-971b-2813931eb9c0/public_url}{Verify on Credly}}{Apr 2022}
+\vspace{4pt}
+
+%-------- EDUCATION --------
+\needspace{6\baselineskip}
+\section{Education}
+\eduheading{icons/GWU.png}{George Washington University \& ADA University}{M.Sc., Computer Science \& Data Analytics}{2021 -- 2023}
+\eduheading{icons/ADA.png}{ADA University}{B.Sc., Computer Engineering}{2017 -- 2021}
+\vspace{4pt}
+
+%-------- SKILLS --------
+\needspace{8\baselineskip}
+\section{Skills}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\color{accent}}l X@{}}
+    Data Engineering    & Apache Spark, Kafka, Airflow, dbt, Iceberg, Delta Lake, Trino, ETL/ELT \\
+    Languages           & Python, SQL, Java, C++, Bash \\
+    Databases           & PostgreSQL, Snowflake, BigQuery, DuckDB, MS SQL Server, MongoDB, Redis \\
+    Cloud \& DevOps     & GCP, AWS, Azure, Docker, Kubernetes, Terraform, GitHub Actions, Linux \\
+    LLM \& Agents       & Anthropic, OpenAI, Ollama, agent loops, prompt engineering, structured output \\
+    Backend \& Tools    & FastAPI, Django, Pydantic, Click, sqlglot, Git, REST APIs \\
+    Analytics \& BI     & Looker, Superset, Grafana, Metabase, Data Modeling \\
+    Spoken Languages    & English (Proficient) \quad Russian (Advanced) \quad Azerbaijani (Native) \\
+\end{tabularx}
+
+\end{document}
