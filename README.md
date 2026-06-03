@@ -4,7 +4,7 @@ Data Engineer · Baku, Azerbaijan
 
 [**Download latest PDF →**](SadigAkhund_Resume.pdf)
 
-<!-- LAST_UPDATED -->_Last updated: 2026-06-04_<!-- /LAST_UPDATED -->
+<!-- LAST_UPDATED -->_Last updated: 2026-06-03_<!-- /LAST_UPDATED -->
 
 ![Resume preview](preview.png)
 
