@@ -12,8 +12,11 @@
 !scripts/*.sh
 !.gitignore
 !icons/*
+!fonts/*.ttf
 !.latexmkrc
 !README.md
+!preview.png
+!.github/workflows/*.yml
 
 # Re-ignore build artifacts even if matched above
 *.aux
@@ -22,6 +25,7 @@
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+*.xdv
 *.bbl
 *.blg
 *.toc

@@ -1,0 +1,65 @@
+name: Build Resume
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "SadigAkhund_Resume.tex"
+      - "icons/**"
+      - "fonts/**"
+      - "scripts/build.sh"
+      - ".github/workflows/build-resume.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-resume
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile PDF (XeLaTeX)
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: SadigAkhund_Resume.tex
+          latexmk_use_xelatex: true
+          # Fonts are vendored under fonts/ so the build is self-contained.
+
+      - name: Install poppler (pdftoppm)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Regenerate preview.png
+        run: |
+          pdftoppm -png -r 150 -f 1 -l 1 SadigAkhund_Resume.pdf preview
+          mv -f preview-1.png preview.png
+
+      - name: Archive dated copy
+        run: |
+          mkdir -p Archive
+          DATE=$(date -u +%Y-%m-%d)
+          cp -f SadigAkhund_Resume.pdf "Archive/SadigAkhund_Resume_${DATE}.pdf"
+
+      - name: Stamp README with build date
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          sed -i -E "s#<!-- LAST_UPDATED -->.*<!-- /LAST_UPDATED -->#<!-- LAST_UPDATED -->_Last updated: ${DATE}_<!-- /LAST_UPDATED -->#" README.md
+
+      - name: Commit build artifacts
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add SadigAkhund_Resume.pdf preview.png README.md Archive/
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          DATE=$(date -u +%Y-%m-%d)
+          git commit -m "ci: rebuild resume PDF ${DATE} [skip ci]"
+          git push

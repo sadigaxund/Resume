@@ -32,6 +32,9 @@ PKGS=(
 echo ">> Installing LaTeX packages..."
 sudo dnf install -y --skip-unavailable "${PKGS[@]}"
 
+echo ">> Installing poppler-utils (pdftoppm for preview generation)..."
+sudo dnf install -y poppler-utils
+
 echo ">> Rebuilding PDF..."
 "$(dirname "$0")/build.sh"
 
