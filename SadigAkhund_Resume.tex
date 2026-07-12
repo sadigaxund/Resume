@@ -169,7 +169,7 @@
 
 %-------- SUMMARY (no header — flows from contact block) --------
 \vspace{6pt}
-{\small Data Engineer with 3+ years across platform and delivery --- integrated \textbf{Apache Spark, Iceberg, and Trino} into an in-house orchestration platform, and shipped lakehouse pipelines processing tens of millions of records for government and financial clients.\par}
+{\small Data Engineer with 3+ years across platform and delivery work. Integrated \textbf{Apache Spark, Iceberg, and Trino} into an in-house orchestration platform and shipped lakehouse pipelines that process tens of millions of records for government and financial clients.\par}
 
 %-------- EXPERIENCE --------
 \section{Experience}
@@ -178,27 +178,27 @@
 \subrole{Platform Engineering --- Fyrefuse orchestration platform}
 \begin{itemize}
     \small
-    \item Researched and integrated \textbf{Apache Iceberg, Hive Metastore, Trino, PostgreSQL, and Apache Spark} into the in-house Fyrefuse platform, opening federated lakehouse queries over object storage without re-ingesting to the warehouse.
-    \item Built a \textbf{viewport-aware caching layer} between the application frontend and Trino-backed sources --- preloaded pages around the user's scroll window in both directions, eliminating perceived load time on multi-million-row CSV-style tables.
+    \item Researched and integrated \textbf{Apache Iceberg, Hive Metastore, Trino, PostgreSQL, and Apache Spark} into the in-house Fyrefuse platform, which let users run federated lakehouse queries over object storage without re-ingesting to the warehouse.
+    \item Built a \textbf{viewport-aware caching layer} between the application frontend and Trino-backed sources that preloads pages around the user's scroll window in both directions, so multi-million-row CSV-style tables load with no perceived wait.
     \item Selected \textbf{PostgreSQL} over Redis as the cache backend after benchmarking: Redis covered only key-value access while users needed sort, filter, aggregation, and full-text search; Postgres delivered all four plus \textbf{sub-second write times for 1M records} after switching the ingest path from \texttt{INSERT}/bulk-insert to \textbf{\texttt{COPY}}.
 \end{itemize}
 \subrole{Delivery --- Ministry of Tourism of Saudi Arabia}
 \begin{itemize}
     \small
-    \item Designed multi-source OTA ingestion: extraction scripts published to \textbf{Apache Kafka} on standardized topics (decoupling ingest from transform, enabling replay), consumed by \textbf{Spark} pipelines orchestrated through Fyrefuse, landing in a \textbf{MS SQL Server} warehouse.
-    \item Modeled the warehouse schema for \textbf{80M+ customer reviews} and multi-year listing metadata across \textbf{18 business-critical tables}, applying dimensional modeling and slowly-changing-dimension patterns to power national tourism analytics.
-    \item Engineered adaptive error handling for unreliable OTA providers (rate-limit backoff, schema drift detection, dead-letter queue), eliminating routine manual intervention.
-    \item Owned ETL workflow governance in \textbf{Dataiku} --- parameter file management, log auditing, pipeline observability across all ingestion jobs.
+    \item Designed multi-source OTA ingestion: extraction scripts published to \textbf{Apache Kafka} on standardized topics (which decoupled ingest from transform and allowed replay), consumed by \textbf{Spark} pipelines orchestrated through Fyrefuse, landing in a \textbf{MS SQL Server} warehouse.
+    \item Modeled the warehouse schema for \textbf{80M+ customer reviews} and multi-year listing metadata across \textbf{18 business-critical tables}, using dimensional modeling and slowly-changing-dimension patterns to support national tourism analytics.
+    \item Engineered adaptive error handling for unreliable OTA providers (rate-limit backoff, schema drift detection, dead-letter queue), so failed loads no longer needed manual intervention.
+    \item Owned ETL workflow governance in \textbf{Dataiku}: parameter file management, log auditing, and pipeline observability across all ingestion jobs.
 \end{itemize}
 \stackline{Stack}{Apache Spark, Kafka, Iceberg, Trino, Hive Metastore, PostgreSQL, Redis, MS SQL Server, Dataiku, RHEL}
 
 \jobheading{icons/unibank.png}{Unibank}{Baku, Azerbaijan}{Data Engineer (Intern)}{Oct 2021 -- May 2022}
 \begin{itemize}
     \small
-    \item Studied and documented the bank's production \textbf{push-notification telemetry pipeline} (mobile app $\rightarrow$ \textbf{Apache NiFi} ingestion $\rightarrow$ \textbf{Apache Spark} enrichment $\rightarrow$ \textbf{ELK stack}), surfacing schema gaps and partition hotspots to the platform team.
-    \item Refactored middleware log schema feeding Logstash, cutting per-event payload size and standardizing the format consumed by Spark enrichment jobs --- reduced storage cost and improved Kibana query latency.
+    \item Studied and documented the bank's production \textbf{push-notification telemetry pipeline} (mobile app $\rightarrow$ \textbf{Apache NiFi} ingestion $\rightarrow$ \textbf{Apache Spark} enrichment $\rightarrow$ \textbf{ELK stack}) and surfaced schema gaps and partition hotspots to the platform team.
+    \item Refactored middleware log schema feeding Logstash, cutting per-event payload size and standardizing the format consumed by Spark enrichment jobs, which reduced storage cost and improved Kibana query latency.
     \item Built a \textbf{FastAPI} service that exposed enriched notification metrics to internal stakeholders, replacing manual ad-hoc Elasticsearch queries.
-    \item Benchmarked \textbf{InfluxDB, Snowflake, and MongoDB} as candidate stores for time-series and document workloads, producing a feasibility report that informed the bank's analytics roadmap.
+    \item Benchmarked \textbf{InfluxDB, Snowflake, and MongoDB} as candidate stores for time-series and document workloads and wrote a feasibility report that informed the bank's analytics roadmap.
 \end{itemize}
 \stackline{Stack}{Apache Spark, Apache NiFi, Elasticsearch, Logstash, Kibana, Python, FastAPI, MongoDB, InfluxDB, Snowflake}
 
@@ -218,9 +218,9 @@
 \begin{itemize}
     \small
     \item Designed and shipped a \textbf{declarative pipeline engine} (Parser $\rightarrow$ Compiler $\rightarrow$ Executor $\rightarrow$ Surveyor) replacing imperative PySpark with version-controlled YAML Blueprints. Released \textbf{1.0.0 to PyPI} as \href{https://pypi.org/project/aqueduct-core/}{\texttt{aqueduct-core}}.
-    \item Built a multi-provider \textbf{LLM self-healing agent loop} that diagnoses failed Spark runs from a structured \texttt{FailureContext} and emits validated patches via a \textbf{10-op PatchSpec grammar}; deterministic guardrails + provenance-aware prompts cut hallucination.
-    \item Shipped \textbf{first-class Apache Airflow integration}: drop-in \texttt{AqueductOperator} + deferred-pattern sensors; supports human/CI healing modes via structured exit codes. Replaces the imperative-Spark layer underneath existing orchestration.
-    \item Engineered \textbf{zero-overhead observability} --- pipeline health, performance metrics, and column-level data lineage tracked automatically with no measurable performance cost, built on Spark's native instrumentation hooks and an embedded analytical database.
+    \item Built a multi-provider \textbf{LLM self-healing agent loop} that diagnoses failed Spark runs from a structured \texttt{FailureContext} and emits validated patches via a \textbf{10-op PatchSpec grammar}; deterministic guardrails and provenance-aware prompts cut hallucination.
+    \item Shipped \textbf{Apache Airflow integration}: drop-in \texttt{AqueductOperator} + deferred-pattern sensors; supports human/CI healing modes via structured exit codes. Replaces the imperative-Spark layer underneath existing orchestration.
+    \item Added \textbf{zero-overhead observability}: pipeline health, performance metrics, and column-level data lineage tracked automatically through Spark's native instrumentation hooks and an embedded analytical database.
     \item Implemented \textbf{pluggable persistence} (DuckDB, Postgres, Redis behind a Store API), multi-cloud secrets dispatch (AWS / GCP / Azure), structured Spark error extraction, and a 2-tier benchmark harness for prompt regression detection in CI.
 \end{itemize}
 \stackline{Acquired Skills}{Apache Spark, Apache Airflow, DSL \& Compiler Design, LLM Agents, Prompt Engineering, DuckDB, Data Lineage, Platform Engineering, Open-Source Maintainership}
