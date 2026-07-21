@@ -9,6 +9,7 @@
 !*.pdf
 
 # Allow scripts + repo config
+!*.sh
 !scripts/*.sh
 !.gitignore
 !icons/*
@@ -16,6 +17,7 @@
 !.latexmkrc
 !README.md
 !preview.png
+!server.py
 !.github/workflows/*.yml
 
 # Re-ignore build artifacts even if matched above
@@ -33,3 +35,4 @@
 .latexmkrc
 
 tmp/
+_cache/
