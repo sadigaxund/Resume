@@ -6,22 +6,40 @@
 
 | What | Where |
 |------|-------|
-| Source | [`SadigAkhund_Resume.tex`](SadigAkhund_Resume.tex) |
-| Latest PDF | [`SadigAkhund_Resume.pdf`](SadigAkhund_Resume.pdf) |
+| Template source | [`template/Template_Resumé.tex`](template/Template_Resumé.tex) |
+| Latest PDF | [`Template_Resumé.pdf`](Template_Resumé.pdf) |
 | Version history | [`Archive/`](Archive/) |
 | Build scripts | [`scripts/`](scripts/) |
+| Server | [`app/`](app/) |
+| LaTeX deps | [`tex-packages.txt`](tex-packages.txt) |
 
 ## Build
 
+### Dependencies
+
+**Minimal** — install only the packages listed in `tex-packages.txt`:
+
 ```bash
-./scripts/install-deps.sh   # one-time: install LaTeX packages (Fedora)
-./scripts/build.sh          # compile PDF + regenerate preview.png
-./scripts/version-commit.sh # archive current PDF with date suffix + commit
+./scripts/install-deps.sh          # Fedora: reads tex-packages.txt
 ```
 
-Compiler: `xelatex` via `latexmk`. Ubuntu font is vendored under [`fonts/`](fonts/), so the build is self-contained.
+**Full TeX Live** (slower download, but guaranteed to have everything):
 
-> On every push that changes `SadigAkhund_Resume.tex`, GitHub Actions rebuilds the PDF, regenerates the preview, archives a dated copy into [`Archive/`](Archive/), and commits the results back.
+```bash
+sudo dnf install texlive-scheme-full   # Fedora
+# or your distro's equivalent
+```
+
+### Compile
+
+```bash
+./scripts/build.sh                # compiles template/Template_Resumé.tex
+./scripts/version-commit.sh       # archives + commits
+```
+
+The PDF is written to the repo root as `Template_Resumé.pdf`. Template assets (icons, fonts) live in [`template/`](template/).
+
+> On every push that touches `template/`, GitHub Actions rebuilds the PDF, archives a dated copy into [`Archive/`](Archive/), and commits the results back.
 
 ## Serve
 
@@ -41,12 +59,11 @@ Prompts for host/port interactively; defaults to `0.0.0.0:8000`. Creates a `syst
 curl -fsSL https://raw.githubusercontent.com/sadigaxund/Resume/main/uninstall.sh | bash
 ```
 
-Stops the service, removes the systemd unit, and optionally deletes the cloned repo.
-
 ### Manual run
 
 ```bash
-uvicorn server:app --host 0.0.0.0 --port 8000
+pip install -r app/requirements.txt
+uvicorn app.server:app --host 0.0.0.0 --port 8000
 # or
 ./scripts/serve.sh
 ```
@@ -60,6 +77,4 @@ uvicorn server:app --host 0.0.0.0 --port 8000
 | `/sync` | Triggers a re‑sync from GitHub |
 | `/api/versions` | JSON list of available versions + SHA‑256 hashes |
 
-On startup, `server.py` fetches the PDF archive from `raw.githubusercontent.com`, caches files in `_cache/`, and deduplicates entries that are identical to the latest. No local PDFs are required after the initial sync.
-
-
+On startup, the server fetches the PDF archive from `raw.githubusercontent.com`, caches files in `_cache/`, and deduplicates entries that are identical to the latest. No local PDFs are required after the initial sync.

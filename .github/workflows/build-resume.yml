@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "SadigAkhund_Resume.tex"
+      - "template/**"
   workflow_dispatch: {}
 
 permissions:
@@ -24,21 +24,23 @@ jobs:
       - name: Compile PDF (XeLaTeX)
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: SadigAkhund_Resume.tex
+          root_file: template/Template_Resumé.tex
           latexmk_use_xelatex: true
-          # Fonts are vendored under fonts/ so the build is self-contained.
+
+      - name: Copy PDF to root
+        run: cp template/Template_Resumé.pdf Template_Resumé.pdf
 
       - name: Archive dated copy
         run: |
           mkdir -p Archive
           DATE=$(date -u +%Y-%m-%d)
-          cp -f SadigAkhund_Resume.pdf "Archive/SadigAkhund_Resume_${DATE}.pdf"
+          cp -f Template_Resumé.pdf "Archive/Template_Resumé_${DATE}.pdf"
 
       - name: Commit build artifacts
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add SadigAkhund_Resume.pdf Archive/
+          git add Template_Resumé.pdf Archive/
           if git diff --cached --quiet; then
             echo "Nothing to commit."
             exit 0

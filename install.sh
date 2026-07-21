@@ -4,7 +4,7 @@ set -e
 REPO_URL="https://github.com/sadigaxund/Resume.git"
 SERVICE_NAME="resume-server"
 
-if [ -f "$(dirname "$0")/server.py" ] 2>/dev/null; then
+if [ -f "$(dirname "$0")/app/server.py" ] 2>/dev/null; then
   INSTALL_DIR="$(cd "$(dirname "$0")" && pwd)"
 else
   INSTALL_DIR="${HOME}/Resume"
@@ -36,7 +36,7 @@ else
 fi
 
 echo ">> Installing Python dependencies..."
-pip3 install --user -q fastapi uvicorn httpx
+pip3 install --user -q -r app/requirements.txt
 
 echo ">> Creating systemd user service..."
 mkdir -p "${HOME}/.config/systemd/user"
@@ -50,7 +50,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=${INSTALL_DIR}
-ExecStart=$(command -v python3) -m uvicorn server:app --host ${HOST} --port ${PORT}
+ExecStart=$(command -v python3) -m uvicorn app.server:app --host ${HOST} --port ${PORT}
 Restart=always
 RestartSec=5
 Environment=PORT=${PORT}

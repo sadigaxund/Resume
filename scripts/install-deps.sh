@@ -1,39 +1,18 @@
 #!/usr/bin/env bash
-# Install LaTeX packages needed to compile SadigAkhund_Resume.tex on Fedora.
-# Minimal — no full texlive-scheme-medium bundle.
-
 set -e
 
-PKGS=(
-    texlive-latex
-    texlive-xetex
-    texlive-fontspec
-    texlive-titlesec
-    texlive-marvosym
-    texlive-enumitem
-    texlive-fancyhdr
-    texlive-hyperref
-    texlive-babel
-    texlive-babel-english
-    texlive-tools
-    texlive-cm-super
-    texlive-amsfonts
-    texlive-ec
-    texlive-metafont
-    texlive-helvetic
-    texlive-psnfss
-    texlive-xcolor
-    texlive-fontawesome5
-    texlive-geometry
-    texlive-needspace
-    texlive-collection-fontsrecommended
-)
+cd "$(dirname "$0")/.."
 
-echo ">> Installing LaTeX packages..."
+PKGS=()
+while IFS= read -r line; do
+  line="${line%%#*}"        # strip comments
+  line="${line//[[:space:]]/}"  # strip whitespace
+  [[ -z "$line" ]] && continue
+  PKGS+=("$line")
+done < tex-packages.txt
+
+echo ">> Installing LaTeX packages from tex-packages.txt..."
 sudo dnf install -y --skip-unavailable "${PKGS[@]}"
-
-echo ">> Installing poppler-utils (pdftoppm for preview generation)..."
-sudo dnf install -y poppler-utils
 
 echo ">> Rebuilding PDF..."
 "$(dirname "$0")/build.sh"

@@ -6,7 +6,7 @@ SERVICE_NAME="resume-server"
 SERVICE_FILE="${HOME}/.config/systemd/user/${SERVICE_NAME}.service"
 INSTALL_DIR=""
 
-if [ -f "$(dirname "$0")/server.py" ] 2>/dev/null; then
+if [ -f "$(dirname "$0")/app/server.py" ] 2>/dev/null; then
   INSTALL_DIR="$(cd "$(dirname "$0")" && pwd)"
 fi
 

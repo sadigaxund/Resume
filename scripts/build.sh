@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
-# Clean build artifacts and compile resume PDF.
-# Non-interactive: halts on first error, never prompts.
-
 set -e
 
 cd "$(dirname "$0")/.."
 
 echo ">> Cleaning aux files..."
-rm -f SadigAkhund_Resume.aux SadigAkhund_Resume.log SadigAkhund_Resume.out \
-      SadigAkhund_Resume.fls SadigAkhund_Resume.fdb_latexmk SadigAkhund_Resume.synctex.gz
+rm -f Template_Resumé.aux Template_Resumé.log Template_Resumé.out \
+      Template_Resumé.fls Template_Resumé.fdb_latexmk Template_Resumé.synctex.gz \
+      Template_Resumé.xdv
 
 echo ">> Compiling..."
 latexmk -xelatex \
     -interaction=nonstopmode \
     -halt-on-error \
     -file-line-error \
-    SadigAkhund_Resume.tex
+    -outdir=. \
+    template/Template_Resumé.tex
 
-echo ">> Built: SadigAkhund_Resume.pdf"
-
+echo ">> Built: Template_Resumé.pdf"

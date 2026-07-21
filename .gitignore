@@ -12,11 +12,14 @@
 !*.sh
 !scripts/*.sh
 !.gitignore
-!icons/*
-!fonts/*.ttf
+!template/icons/*
+!template/fonts/*.ttf
 !.latexmkrc
 !README.md
-!server.py
+!TODO.md
+!app/server.py
+!app/requirements.txt
+!tex-packages.txt
 !.github/workflows/*.yml
 
 # Re-ignore build artifacts even if matched above

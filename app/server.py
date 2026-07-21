@@ -13,8 +13,9 @@ REPO = "Resume"
 BRANCH = "main"
 API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents"
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).parent.parent
 CACHE = ROOT / "_cache"
+ARCHIVE = ROOT / "Archive"
 
 INDEX_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -171,9 +172,7 @@ def _hash_file(path: Path) -> str:
 
 def _parse_date(name: str) -> str:
     stem = name.removesuffix(".pdf")
-    return (stem
-            .replace("SadigAkhund_Resume_", "")
-            .replace("SadigAkhund_Resumé_", ""))
+    return stem.replace("Template_Resumé_", "")
 
 
 def _label(name: str, date: str) -> str:
@@ -302,4 +301,4 @@ async def api_versions():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("server:app", host="0.0.0.0", port=8000)
+    uvicorn.run("app.server:app", host="0.0.0.0", port=8000)
