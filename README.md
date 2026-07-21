@@ -1,11 +1,5 @@
 # Sadig Akhund — Resume
 
-Data Engineer · Baku, Azerbaijan
-
-[**Download latest PDF →**](SadigAkhund_Resume.pdf)
-
-<!-- LAST_UPDATED -->_Last updated: 2026-07-12_<!-- /LAST_UPDATED -->
-
 ---
 
 ## Repository
