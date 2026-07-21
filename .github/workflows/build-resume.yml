@@ -38,16 +38,11 @@ jobs:
           DATE=$(date -u +%Y-%m-%d)
           cp -f SadigAkhund_Resume.pdf "Archive/SadigAkhund_Resume_${DATE}.pdf"
 
-      - name: Stamp README with build date
-        run: |
-          DATE=$(date -u +%Y-%m-%d)
-          sed -i -E "s#<!-- LAST_UPDATED -->.*<!-- /LAST_UPDATED -->#<!-- LAST_UPDATED -->_Last updated: ${DATE}_<!-- /LAST_UPDATED -->#" README.md
-
       - name: Commit build artifacts
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add SadigAkhund_Resume.pdf README.md Archive/
+          git add SadigAkhund_Resume.pdf Archive/
           if git diff --cached --quiet; then
             echo "Nothing to commit."
             exit 0
