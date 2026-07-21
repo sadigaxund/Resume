@@ -62,7 +62,4 @@ uvicorn server:app --host 0.0.0.0 --port 8000
 
 On startup, `server.py` fetches the PDF archive from `raw.githubusercontent.com`, caches files in `_cache/`, and deduplicates entries that are identical to the latest. No local PDFs are required after the initial sync.
 
-## Contact
 
-- Email: sadigaxund@gmail.com
-- LinkedIn: [/in/sakhund](https://linkedin.com/in/sakhund)
