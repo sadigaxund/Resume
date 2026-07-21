@@ -32,14 +32,6 @@ jobs:
           latexmk_use_xelatex: true
           # Fonts are vendored under fonts/ so the build is self-contained.
 
-      - name: Install poppler (pdftoppm)
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
-
-      - name: Regenerate preview.png
-        run: |
-          pdftoppm -png -r 150 -f 1 -l 1 SadigAkhund_Resume.pdf preview
-          mv -f preview-1.png preview.png
-
       - name: Archive dated copy
         run: |
           mkdir -p Archive
@@ -55,7 +47,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add SadigAkhund_Resume.pdf preview.png README.md Archive/
+          git add SadigAkhund_Resume.pdf README.md Archive/
           if git diff --cached --quiet; then
             echo "Nothing to commit."
             exit 0

@@ -16,7 +16,6 @@
 !fonts/*.ttf
 !.latexmkrc
 !README.md
-!preview.png
 !server.py
 !.github/workflows/*.yml
 

@@ -6,8 +6,6 @@ Data Engineer · Baku, Azerbaijan
 
 <!-- LAST_UPDATED -->_Last updated: 2026-07-12_<!-- /LAST_UPDATED -->
 
-![Resume preview](preview.png)
-
 ---
 
 ## Repository

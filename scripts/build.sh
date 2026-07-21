@@ -19,7 +19,3 @@ latexmk -xelatex \
 
 echo ">> Built: SadigAkhund_Resume.pdf"
 
-echo ">> Regenerating preview.png..."
-pdftoppm -png -r 150 -f 1 -l 1 SadigAkhund_Resume.pdf preview
-mv -f preview-1.png preview.png
-echo ">> Preview: preview.png"
