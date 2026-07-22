@@ -13,8 +13,8 @@ REPO = "Resume"
 BRANCH = "main"
 API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents"
 
+CACHE = Path.home() / ".cache" / "resume-server"
 ROOT = Path(__file__).parent.parent
-CACHE = ROOT / "_cache"
 ARCHIVE = ROOT / "Archive"
 
 INDEX_TEMPLATE = """<!DOCTYPE html>

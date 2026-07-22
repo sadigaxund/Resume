@@ -65,17 +65,6 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-#  Create cache dir with proper ownership
-# ---------------------------------------------------------------------------
-CACHE_DIR="$(dirname "$APP_DIR")/_cache"
-if [ -n "$LOCAL" ]; then
-  mkdir -p "$CACHE_DIR"
-else
-  sudo mkdir -p "$CACHE_DIR"
-  sudo chown "$USER:" "$CACHE_DIR"
-fi
-
-# ---------------------------------------------------------------------------
 #  Virtualenv
 # ---------------------------------------------------------------------------
 echo ">> Creating Python virtual environment..."
