@@ -27,27 +27,27 @@ jobs:
       - name: Read config
         run: |
           pip install pyyaml -q
-          python3 -c "
-import yaml, os
-c = yaml.safe_load(open(os.environ['CFG']))
-with open(os.environ['GITHUB_ENV'], 'a') as env:
-    env.write(f\"AUTHOR={c.get('author', '')}\n\")
-    env.write(f\"TEMPLATE={c.get('template', '')}\n\")
-"
+          python3 << 'PYEOF'
+          import yaml, os
+          c = yaml.safe_load(open(os.environ['CFG']))
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f"AUTHOR={c.get('author', '')}\n")
+              env.write(f"TEMPLATE={c.get('template', '')}\n")
+          PYEOF
 
       - name: Generate server config
         run: |
-          python3 -c "
-import json, os
-config = {
-    'author': os.environ['AUTHOR'],
-    'owner': '${{ github.repository_owner }}',
-    'repo': '${{ github.event.repository.name }}',
-    'branch': '${{ github.ref_name }}',
-}
-with open('app/config.json', 'w') as f:
-    json.dump(config, f, indent=2)
-"
+          python3 << 'PYEOF'
+          import json, os
+          config = {
+              'author': os.environ['AUTHOR'],
+              'owner': '${{ github.repository_owner }}',
+              'repo': '${{ github.event.repository.name }}',
+              'branch': '${{ github.ref_name }}',
+          }
+          with open('app/config.json', 'w') as f:
+              json.dump(config, f, indent=2)
+          PYEOF
 
       - name: Update install.sh with repo URL
         run: |
