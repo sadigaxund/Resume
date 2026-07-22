@@ -15,6 +15,7 @@ echo ">> Installing LaTeX packages from tex-packages.txt..."
 sudo dnf install -y --skip-unavailable "${PKGS[@]}"
 
 echo ">> Rebuilding PDF..."
-"$(dirname "$0")/build.sh"
+TEMPLATE=$(grep '^template:' template/resume.yml | sed 's/^template:[[:space:]]*//; s/"//g')
+"$(dirname "$0")/build.sh" "template/$TEMPLATE"
 
 echo ">> Done."

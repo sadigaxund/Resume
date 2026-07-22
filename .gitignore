@@ -14,7 +14,6 @@
 !.gitignore
 !template/icons/*
 !template/fonts/*.ttf
-!.latexmkrc
 !README.md
 !TODO.md
 !app/server.py
@@ -36,7 +35,7 @@
 *.blg
 *.toc
 
-.latexmkrc
-
 tmp/
 _cache/
+__pycache__/
+.claude/
