@@ -329,7 +329,7 @@ async def api_versions():
 
 @app.head("/")
 async def head_root():
-    return Response()
+    return Response(headers={"Content-Type": "text/html; charset=utf-8"})
 
 @app.head("/pdf/{filename:path}")
 async def head_pdf(filename: str):
