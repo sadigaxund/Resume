@@ -48,13 +48,13 @@ else
 fi
 
 echo ">> Creating Python virtual environment..."
-sudo "$PYTHON" -m venv "${APP_DIR}/venv"
-"${APP_DIR}/venv/bin/pip" install -q -r "${APP_DIR}/requirements.txt"
-
-if [ -z "$LOCAL" ]; then
-  echo ">> Making app directory writable for cache..."
+if [ -n "$LOCAL" ]; then
+  "$PYTHON" -m venv "${APP_DIR}/venv"
+else
   sudo chown -R "$USER:" "${APP_DIR}"
+  "$PYTHON" -m venv "${APP_DIR}/venv"
 fi
+"${APP_DIR}/venv/bin/pip" install -q -r "${APP_DIR}/requirements.txt"
 
 echo ">> Creating systemd service..."
 sudo tee "/etc/systemd/system/${SERVICE_NAME}.service" > /dev/null <<EOF
