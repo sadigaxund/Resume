@@ -68,13 +68,14 @@ jobs:
           root_file: template/${{ env.TEMPLATE }}
           latexmk_use_xelatex: true
 
-      - name: Determine archive stem
+      - name: Copy PDF to root
         run: |
           STEM=$(basename "${{ env.TEMPLATE }}" .tex)
           AUTHOR_STEM=$(echo "${{ env.AUTHOR }}" | tr -d '[:space:]')
           PREFIX="${AUTHOR_STEM:-$STEM}"
           echo "PREFIX=$PREFIX" >> $GITHUB_ENV
           echo "STEM=$STEM" >> $GITHUB_ENV
+          cp "template/${STEM}.pdf" "${STEM}.pdf"
 
       - name: Archive dated copy
         run: |
