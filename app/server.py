@@ -22,7 +22,7 @@ INDEX_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sadig Akhund - Resume</title>
+<title>Resume</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -119,7 +119,7 @@ INDEX_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
   <div class="toolbar">
-    <h1>Sadig Akhund — Resume</h1>
+    <h1>Resume</h1>
     <span class="hash-group">
       <span class="label">SHA:</span>
       <code id="hashDisplay"></code>

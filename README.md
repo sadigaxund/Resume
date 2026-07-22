@@ -1,4 +1,4 @@
-# Sadig Akhund — Resume
+# Resume
 
 | What | Where |
 |------|-------|

@@ -2,29 +2,26 @@
 set -e
 
 REPO_URL="https://github.com/sadigaxund/Resume.git"
-SERVICE_NAME="resume-server"
-INSTALL_DIR="/opt/${SERVICE_NAME}"
 
+_read() {
+  local var="$1" prompt="$2" default="$3"
+  local val="${!var}"
+  if [ -z "$val" ] && [ -c /dev/tty ]; then
+    read -r -p ">> ${prompt} [${default}]: " val < /dev/tty
+  fi
+  eval "$var=\"${val:-$default}\""
+}
+
+_read HOST "Bind host (0.0.0.0 = all interfaces)" "0.0.0.0"
+_read PORT "Bind port"                             "8000"
+_read SVC  "Systemd service name"                  "resume-server"
+echo ""
+
+INSTALL_DIR="/opt/${SVC}"
+LOCAL=""
 if [ -f "$(dirname "$0")/app/server.py" ] 2>/dev/null; then
   LOCAL="yes"
-else
-  LOCAL=""
-fi
-
-HOST="${HOST:-}"
-PORT="${PORT:-}"
-if [ -z "$HOST" ] || [ -z "$PORT" ]; then
-  TTY=""
-  [ -c /dev/tty ] && TTY="/dev/tty"
-  if [ -n "$TTY" ]; then
-    [ -z "$HOST" ] && read -r -p ">> Bind host [0.0.0.0] (accepts localhost + LAN): " HOST < "$TTY"
-    HOST="${HOST:-0.0.0.0}"
-    [ -z "$PORT" ] && read -r -p ">> Bind port [8000]: " PORT < "$TTY"
-    PORT="${PORT:-8000}"
-  else
-    HOST="${HOST:-0.0.0.0}"
-    PORT="${PORT:-8000}"
-  fi
+  APP_DIR="$(cd "$(dirname "$0")/app" && pwd)"
 fi
 
 echo ">> Checking Python..."
@@ -34,8 +31,24 @@ if [ -z "$PYTHON" ]; then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+#  Existing install detection & cleanup
+# ---------------------------------------------------------------------------
+SERVICE_FILE="/etc/systemd/system/${SVC}.service"
+if [ -f "$SERVICE_FILE" ] || [ -d "$INSTALL_DIR" ]; then
+  echo ">> Existing installation detected — stopping & removing..."
+  sudo systemctl stop "${SVC}" 2>/dev/null || true
+  sudo systemctl disable "${SVC}" 2>/dev/null || true
+  sudo rm -f "$SERVICE_FILE"
+  sudo systemctl daemon-reload
+  sudo rm -rf "$INSTALL_DIR"
+  echo ">> Old files removed."
+fi
+
+# ---------------------------------------------------------------------------
+#  Fetch source
+# ---------------------------------------------------------------------------
 if [ -n "$LOCAL" ]; then
-  APP_DIR="$(cd "$(dirname "$0")/app" && pwd)"
   echo ">> Using local app/ at ${APP_DIR}"
 else
   if ! command -v git &>/dev/null; then
@@ -46,12 +59,25 @@ else
   echo ">> Cloning repo (shallow)..."
   git clone --depth 1 "$REPO_URL" "$TMPDIR"
   sudo mkdir -p "$INSTALL_DIR"
-  sudo rm -rf "${INSTALL_DIR}/app"
   sudo cp -r "${TMPDIR}/app" "$INSTALL_DIR/"
   rm -rf "$TMPDIR"
   APP_DIR="${INSTALL_DIR}/app"
 fi
 
+# ---------------------------------------------------------------------------
+#  Create cache dir with proper ownership
+# ---------------------------------------------------------------------------
+CACHE_DIR="$(dirname "$APP_DIR")/_cache"
+if [ -n "$LOCAL" ]; then
+  mkdir -p "$CACHE_DIR"
+else
+  sudo mkdir -p "$CACHE_DIR"
+  sudo chown "$USER:" "$CACHE_DIR"
+fi
+
+# ---------------------------------------------------------------------------
+#  Virtualenv
+# ---------------------------------------------------------------------------
 echo ">> Creating Python virtual environment..."
 if [ -n "$LOCAL" ]; then
   "$PYTHON" -m venv "${APP_DIR}/venv"
@@ -61,10 +87,14 @@ else
 fi
 "${APP_DIR}/venv/bin/pip" install -q -r "${APP_DIR}/requirements.txt"
 
+# ---------------------------------------------------------------------------
+#  Systemd service
+# ---------------------------------------------------------------------------
 echo ">> Creating systemd service..."
-sudo tee "/etc/systemd/system/${SERVICE_NAME}.service" > /dev/null <<EOF
+DESCRIPTION="Resume Server"
+sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
-Description=Resume Server — Sadig Akhund
+Description=${DESCRIPTION}
 After=network-online.target
 Wants=network-online.target
 
@@ -82,8 +112,9 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now "${SERVICE_NAME}"
+sudo systemctl enable --now "${SVC}"
 
-echo ">> Done! Service '${SERVICE_NAME}' is running on ${HOST}:${PORT}."
-echo "   Status: sudo systemctl status ${SERVICE_NAME}"
-echo "   Logs:   sudo journalctl -u ${SERVICE_NAME} -f"
+echo ""
+echo ">> Done! Service '${SVC}' is running on ${HOST}:${PORT}."
+echo "   Status: sudo systemctl status ${SVC}"
+echo "   Logs:   sudo journalctl -u ${SVC} -f"
