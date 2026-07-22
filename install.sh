@@ -94,6 +94,9 @@ WorkingDirectory=${APP_DIR}
 ExecStart=${APP_DIR}/venv/bin/python -m uvicorn server:app --host ${HOST} --port ${PORT}
 Restart=always
 RestartSec=5
+CPUQuota=50%
+MemoryMax=256M
+LimitNOFILE=1024
 Environment=PORT=${PORT}
 
 [Install]

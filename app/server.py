@@ -1,6 +1,8 @@
 import asyncio
 import hashlib
 import json
+import time
+from collections import defaultdict
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
@@ -19,10 +21,46 @@ MAX_FILENAME_BYTES = 200
 
 _sync_lock = asyncio.Lock()
 
+# --- rate limiter ---
+_RATE: dict[str, list[float]] = defaultdict(list)
+_RATE_LIMITS: list[tuple[str, int, int]] = [
+    ("/sync",         5,  60),
+    ("/api/versions", 30, 60),
+    ("/pdf",          30, 60),
+    ("/",             60, 60),
+]
+
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    ip = request.client
+    return ip.host if ip else "unknown"
+
+def _check_rate(request: Request):
+    ip = _client_ip(request)
+    path = request.url.path
+    now = time.time()
+    for prefix, max_req, window in _RATE_LIMITS:
+        if not path.startswith(prefix):
+            continue
+        hits = _RATE[ip]
+        cutoff = now - window
+        hits[:] = [t for t in hits if t > cutoff]
+        if len(hits) >= max_req:
+            raise HTTPException(429, "Too many requests")
+        hits.append(now)
+        break
+
 app = FastAPI(title="Resume Server")
 
 @app.middleware("http")
-async def _security_headers(request: Request, call_next):
+async def _middleware(request: Request, call_next):
+    try:
+        _check_rate(request)
+    except HTTPException as e:
+        from starlette.responses import JSONResponse
+        return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
     response = await call_next(request)
     ct = response.headers.get("content-type", "")
     response.headers["X-Content-Type-Options"] = "nosniff"
