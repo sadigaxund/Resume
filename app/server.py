@@ -19,13 +19,9 @@ CACHE = Path.home() / ".cache" / "resume-server"
 ALLOWED_ROOTS = [str(ROOT.resolve()), str(CACHE.resolve())]
 MAX_FILENAME_BYTES = 200
 
-_sync_lock = asyncio.Lock()
-
 # --- rate limiter ---
 _RATE: dict[str, list[float]] = defaultdict(list)
 _RATE_LIMITS: list[tuple[str, int, int]] = [
-    ("/sync",         5,  60),
-    ("/api/versions", 30, 60),
     ("/pdf",          30, 60),
     ("/",             60, 60),
 ]
@@ -334,13 +330,6 @@ async def index():
     return INDEX_TEMPLATE.replace("{OPTIONS}", options).replace("{VERSIONS}", json.dumps(v))
 
 
-@app.get("/sync")
-async def sync():
-    async with _sync_lock:
-        await _sync()
-    return {"status": "ok"}
-
-
 @app.get("/pdf/{filename:path}")
 async def serve_pdf(filename: str):
     if len(filename.encode()) > MAX_FILENAME_BYTES or not filename.endswith(".pdf"):
@@ -360,25 +349,12 @@ async def serve_pdf(filename: str):
                                    "Cache-Control": "no-cache, no-store, must-revalidate"})
 
 
-@app.get("/api/versions")
-async def api_versions():
-    return _find_sources()
-
-
 @app.head("/")
 async def head_root():
     return Response(headers={"Content-Type": "text/html; charset=utf-8"})
 
 @app.head("/pdf/{filename:path}")
 async def head_pdf(filename: str):
-    return Response()
-
-@app.head("/api/versions")
-async def head_versions():
-    return Response()
-
-@app.head("/sync")
-async def head_sync():
     return Response()
 
 if __name__ == "__main__":
