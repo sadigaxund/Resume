@@ -334,11 +334,12 @@ async def index():
 async def serve_pdf(filename: str):
     if len(filename.encode()) > MAX_FILENAME_BYTES or not filename.endswith(".pdf"):
         raise HTTPException(status_code=400)
-    path = (CACHE / filename).resolve()
+    path = None
     try:
+        path = (CACHE / filename).resolve()
         if not path.is_file():
             path = (ROOT / "Archive" / filename).resolve()
-    except OSError:
+    except (OSError, ValueError):
         raise HTTPException(status_code=404)
     if not path.is_file():
         raise HTTPException(status_code=404)
