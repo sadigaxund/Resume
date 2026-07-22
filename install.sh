@@ -117,11 +117,6 @@ RestartSec=5
 CPUQuota=50%
 MemoryMax=256M
 LimitNOFILE=1024
-Environment=PORT=${PORT}
-Environment=AUTHOR=${AUTHOR:-}
-Environment=GITHUB_OWNER=${GITHUB_OWNER:-}
-Environment=GITHUB_REPO=${GITHUB_REPO:-}
-Environment=GITHUB_BRANCH=${GITHUB_BRANCH:-}
 
 [Install]
 WantedBy=multi-user.target

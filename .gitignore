@@ -19,6 +19,8 @@
 !TODO.md
 !app/server.py
 !app/requirements.txt
+!app/config.json
+!template/resume.yml
 !tex-packages.txt
 !.github/workflows/*.yml
 

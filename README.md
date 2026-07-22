@@ -14,13 +14,14 @@ cd YOUR_REPO
 ```
 
 1. **Replace** the `.tex` file in `template/` with your own resume
-2. **Set environment variables** so the server and scripts know your identity:
+2. **Edit** `template/resume.yml` with your name and template filename:
 
-```bash
-export AUTHOR="Your Name"
-export GITHUB_OWNER="your-github-username"
-export GITHUB_REPO="your-repo-name"
+```yaml
+author: "Your Name"
+template: "YourResume.tex"
 ```
+
+3. **Push** — CI reads the config, builds the PDF, generates server config, and commits everything.
 
 ### Build
 
@@ -34,7 +35,7 @@ export GITHUB_REPO="your-repo-name"
 curl -fsSL https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/install.sh | bash
 ```
 
-Prompts for host, port, service name. Or set `GITHUB_OWNER`/`GITHUB_REPO` in advance for a non-interactive install.
+The installer auto-detects the repo URL (CI updates it on each build). Prompts for host, port, service name.
 
 ### Manual server
 
@@ -51,7 +52,14 @@ uvicorn app.server:app --host 0.0.0.0 --port 8000
 
 ## CI
 
-The GitHub Actions workflow (`.github/workflows/build-resume.yml`) compiles the template on every push to `template/`. Set `AUTHOR` as a repository variable in your fork's GitHub settings.
+The GitHub Actions workflow (`.github/workflows/build-resume.yml`) runs on every push to `template/`:
+
+1. Reads `template/resume.yml` → gets your name and template filename
+2. Builds the PDF with XeLaTeX
+3. Generates `app/config.json` with your name + GitHub owner/repo/branch (from context)
+4. Updates `install.sh` with the correct clone URL
+5. Archives a dated copy: `Archive/YourName_2026-07-22.pdf`
+6. Commits everything
 
 ## License
 

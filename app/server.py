@@ -11,39 +11,52 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
 import httpx
 
-def _git_get(key: str, default: str = "") -> str:
+ROOT = Path(__file__).parent.parent
+_CONFIG_PATH = ROOT / "app" / "config.json"
+
+def _load_config() -> dict:
+    if _CONFIG_PATH.is_file():
+        try:
+            return json.loads(_CONFIG_PATH.read_text())
+        except Exception:
+            pass
+    return {}
+
+CONFIG = _load_config()
+
+AUTHOR = CONFIG.get("author") or os.getenv("AUTHOR") or ""
+
+def _git_remote_owner() -> str:
     try:
-        out = subprocess.run(
-            ["git", "config", "--get", key],
-            capture_output=True, text=True, timeout=2
-        ).stdout.strip()
-        return out
+        out = subprocess.run(["git", "config", "--get", "remote.origin.url"],
+                             capture_output=True, text=True, timeout=2).stdout.strip()
+        m = re.match(r"(?:https://github\.com/|git@github\.com:)([^/]+)/([^/.]+)", out)
+        return m.group(1) if m else ""
     except Exception:
-        return default
+        return ""
 
-def _detect_owner_repo() -> tuple[str, str]:
-    remote = _git_get("remote.origin.url")
-    m = re.match(r"(?:https://github\.com/|git@github\.com:)([^/]+)/([^/.]+)", remote)
-    return (m.group(1), m.group(2)) if m else ("", "")
-
-def _detect_branch() -> str:
+def _git_remote_repo() -> str:
     try:
-        out = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, timeout=2
-        ).stdout.strip()
+        out = subprocess.run(["git", "config", "--get", "remote.origin.url"],
+                             capture_output=True, text=True, timeout=2).stdout.strip()
+        m = re.match(r"(?:https://github\.com/|git@github\.com:)([^/]+)/([^/.]+)", out)
+        return m.group(2) if m else ""
+    except Exception:
+        return ""
+
+def _git_branch() -> str:
+    try:
+        out = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                             capture_output=True, text=True, timeout=2).stdout.strip()
         return out or "main"
     except Exception:
         return "main"
 
-AUTHOR = os.getenv("AUTHOR", "")
-_detected_owner, _detected_repo = _detect_owner_repo()
-OWNER = os.getenv("GITHUB_OWNER") or _detected_owner or ""
-REPO = os.getenv("GITHUB_REPO") or _detected_repo or ""
-BRANCH = os.getenv("GITHUB_BRANCH") or _detect_branch()
+OWNER = CONFIG.get("owner") or os.getenv("GITHUB_OWNER") or _git_remote_owner() or ""
+REPO = CONFIG.get("repo") or os.getenv("GITHUB_REPO") or _git_remote_repo() or ""
+BRANCH = CONFIG.get("branch") or os.getenv("GITHUB_BRANCH") or _git_branch()
 API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents" if OWNER and REPO else ""
 
-ROOT = Path(__file__).parent.parent
 ARCHIVE = ROOT / "Archive"
 CACHE = Path.home() / ".cache" / "resume-server"
 ALLOWED_ROOTS = [str(ROOT.resolve()), str(CACHE.resolve())]
