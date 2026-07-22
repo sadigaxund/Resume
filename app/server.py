@@ -2,11 +2,9 @@ import asyncio
 import hashlib
 import json
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, Response
 import httpx
-
-app = FastAPI(title="Resume Server")
 
 OWNER = "sadigaxund"
 REPO = "Resume"
@@ -17,6 +15,29 @@ ROOT = Path(__file__).parent.parent
 ARCHIVE = ROOT / "Archive"
 CACHE = Path.home() / ".cache" / "resume-server"
 ALLOWED_ROOTS = [str(ROOT.resolve()), str(CACHE.resolve())]
+MAX_FILENAME_BYTES = 200
+
+_sync_lock = asyncio.Lock()
+
+app = FastAPI(title="Resume Server")
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "interest-cohort=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "object-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:"
+    )
+    if request.url.scheme == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 INDEX_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -275,21 +296,25 @@ async def index():
 
 @app.get("/sync")
 async def sync():
-    await _sync()
+    async with _sync_lock:
+        await _sync()
     return {"status": "ok"}
 
 
 @app.get("/pdf/{filename:path}")
 async def serve_pdf(filename: str):
-    if not filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+    if len(filename.encode()) > MAX_FILENAME_BYTES or not filename.endswith(".pdf"):
+        raise HTTPException(status_code=400)
     path = (CACHE / filename).resolve()
+    try:
+        if not path.is_file():
+            path = (ROOT / "Archive" / filename).resolve()
+    except OSError:
+        raise HTTPException(status_code=404)
     if not path.is_file():
-        path = (ROOT / "Archive" / filename).resolve()
-    if not path.is_file():
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404)
     if not any(str(path).startswith(base) for base in ALLOWED_ROOTS):
-        raise HTTPException(status_code=403, detail="Invalid path")
+        raise HTTPException(status_code=403)
     return FileResponse(str(path), media_type="application/pdf", filename=path.name,
                         headers={"Content-Disposition": f'inline; filename="{path.name}"',
                                    "Cache-Control": "no-cache, no-store, must-revalidate"})
@@ -299,6 +324,22 @@ async def serve_pdf(filename: str):
 async def api_versions():
     return _find_sources()
 
+
+@app.head("/")
+async def head_root():
+    return Response()
+
+@app.head("/pdf/{filename:path}")
+async def head_pdf(filename: str):
+    return Response()
+
+@app.head("/api/versions")
+async def head_versions():
+    return Response()
+
+@app.head("/sync")
+async def head_sync():
+    return Response()
 
 if __name__ == "__main__":
     import uvicorn
