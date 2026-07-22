@@ -13,9 +13,10 @@ REPO = "Resume"
 BRANCH = "main"
 API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents"
 
-CACHE = Path.home() / ".cache" / "resume-server"
 ROOT = Path(__file__).parent.parent
 ARCHIVE = ROOT / "Archive"
+CACHE = Path.home() / ".cache" / "resume-server"
+ALLOWED_ROOTS = [str(ROOT.resolve()), str(CACHE.resolve())]
 
 INDEX_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
@@ -287,7 +288,7 @@ async def serve_pdf(filename: str):
         path = (ROOT / "Archive" / filename).resolve()
     if not path.is_file():
         raise HTTPException(status_code=404, detail="File not found")
-    if not str(path).startswith(str(ROOT.resolve())):
+    if not any(str(path).startswith(base) for base in ALLOWED_ROOTS):
         raise HTTPException(status_code=403, detail="Invalid path")
     return FileResponse(str(path), media_type="application/pdf", filename=path.name,
                         headers={"Content-Disposition": f'inline; filename="{path.name}"',
