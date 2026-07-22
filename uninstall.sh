@@ -3,28 +3,27 @@ set -e
 
 SERVICE_NAME="resume-server"
 
-SERVICE_FILE="${HOME}/.config/systemd/user/${SERVICE_NAME}.service"
-INSTALL_DIR=""
-
 if [ -f "$(dirname "$0")/app/server.py" ] 2>/dev/null; then
   INSTALL_DIR="$(cd "$(dirname "$0")" && pwd)"
+elif [ -d "/opt/${SERVICE_NAME}/app" ]; then
+  INSTALL_DIR="/opt/${SERVICE_NAME}"
 fi
 
 echo ">> Stopping and disabling service..."
-systemctl --user disable --now "${SERVICE_NAME}" 2>/dev/null || true
+sudo systemctl disable --now "${SERVICE_NAME}" 2>/dev/null || true
 
-if [ -f "$SERVICE_FILE" ]; then
-  rm -f "$SERVICE_FILE"
-  echo ">> Removed service file: ${SERVICE_FILE}"
-  systemctl --user daemon-reload
+if [ -f "/etc/systemd/system/${SERVICE_NAME}.service" ]; then
+  sudo rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
+  echo ">> Removed service file"
+  sudo systemctl daemon-reload
 fi
 
 if [ -n "$INSTALL_DIR" ] && [ -d "$INSTALL_DIR" ]; then
   if [ -t 0 ]; then
     echo ""
-    read -r -p ">> Remove source directory ${INSTALL_DIR}? [y/N]: " REPLY
+    read -r -p ">> Remove ${INSTALL_DIR}? [y/N]: " REPLY
     if [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ]; then
-      rm -rf "$INSTALL_DIR"
+      sudo rm -rf "$INSTALL_DIR"
       echo ">> Removed: ${INSTALL_DIR}"
     fi
   fi

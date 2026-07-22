@@ -3,25 +3,12 @@ set -e
 
 REPO_URL="https://github.com/sadigaxund/Resume.git"
 SERVICE_NAME="resume-server"
+INSTALL_DIR="/opt/${SERVICE_NAME}"
 
 if [ -f "$(dirname "$0")/app/server.py" ] 2>/dev/null; then
-  INSTALL_DIR="$(cd "$(dirname "$0")" && pwd)"
+  LOCAL="yes"
 else
-  INSTALL_DIR="${HOME}/Resume"
-  echo ">> Cloning repo into ${INSTALL_DIR}..."
-  if [ -d "$INSTALL_DIR" ]; then
-    cd "$INSTALL_DIR" && git pull
-  else
-    git clone "$REPO_URL" "$INSTALL_DIR"
-  fi
-fi
-
-cd "$INSTALL_DIR"
-
-echo ">> Checking Python..."
-if ! command -v python3 &>/dev/null; then
-  echo "Error: python3 not found. Install it first."
-  exit 1
+  LOCAL=""
 fi
 
 if [ -t 0 ]; then
@@ -35,13 +22,42 @@ else
   PORT="${PORT:-8000}"
 fi
 
-echo ">> Installing Python dependencies..."
-pip3 install --user -q -r app/requirements.txt
+echo ">> Checking Python..."
+PYTHON=$(command -v python3)
+if [ -z "$PYTHON" ]; then
+  echo "Error: python3 not found. Install it first."
+  exit 1
+fi
 
-echo ">> Creating systemd user service..."
-mkdir -p "${HOME}/.config/systemd/user"
+if [ -n "$LOCAL" ]; then
+  APP_DIR="$(cd "$(dirname "$0")/app" && pwd)"
+  echo ">> Using local app/ at ${APP_DIR}"
+else
+  if ! command -v git &>/dev/null; then
+    echo "Error: git not found. Install git first."
+    exit 1
+  fi
+  TMPDIR=$(mktemp -d)
+  echo ">> Cloning repo (shallow)..."
+  git clone --depth 1 "$REPO_URL" "$TMPDIR"
+  sudo mkdir -p "$INSTALL_DIR"
+  sudo rm -rf "${INSTALL_DIR}/app"
+  sudo cp -r "${TMPDIR}/app" "$INSTALL_DIR/"
+  rm -rf "$TMPDIR"
+  APP_DIR="${INSTALL_DIR}/app"
+fi
 
-cat > "${HOME}/.config/systemd/user/${SERVICE_NAME}.service" <<EOF
+echo ">> Creating Python virtual environment..."
+sudo "$PYTHON" -m venv "${APP_DIR}/venv"
+"${APP_DIR}/venv/bin/pip" install -q -r "${APP_DIR}/requirements.txt"
+
+if [ -z "$LOCAL" ]; then
+  echo ">> Making app directory writable for cache..."
+  sudo chown -R "$USER:" "${APP_DIR}"
+fi
+
+echo ">> Creating systemd service..."
+sudo tee "/etc/systemd/system/${SERVICE_NAME}.service" > /dev/null <<EOF
 [Unit]
 Description=Resume Server — Sadig Akhund
 After=network-online.target
@@ -49,20 +65,20 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=${INSTALL_DIR}
-ExecStart=$(command -v python3) -m uvicorn app.server:app --host ${HOST} --port ${PORT}
+User=${USER}
+WorkingDirectory=${APP_DIR}
+ExecStart=${APP_DIR}/venv/bin/python -m uvicorn server:app --host ${HOST} --port ${PORT}
 Restart=always
 RestartSec=5
 Environment=PORT=${PORT}
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 EOF
 
-systemctl --user daemon-reload
-systemctl --user enable --now "${SERVICE_NAME}"
-loginctl enable-linger "$USER" 2>/dev/null || true
+sudo systemctl daemon-reload
+sudo systemctl enable --now "${SERVICE_NAME}"
 
 echo ">> Done! Service '${SERVICE_NAME}' is running on ${HOST}:${PORT}."
-echo "   Status: systemctl --user status ${SERVICE_NAME}"
-echo "   Logs:   journalctl --user -u ${SERVICE_NAME} -f"
+echo "   Status: sudo systemctl status ${SERVICE_NAME}"
+echo "   Logs:   sudo journalctl -u ${SERVICE_NAME} -f"
