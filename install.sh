@@ -11,15 +11,20 @@ else
   LOCAL=""
 fi
 
-if [ -t 0 ]; then
-  read -r -p ">> Bind host [0.0.0.0]: " HOST
-  HOST="${HOST:-0.0.0.0}"
-  read -r -p ">> Bind port [8000]: " PORT
-  PORT="${PORT:-8000}"
-  echo ""
-else
-  HOST="${HOST:-0.0.0.0}"
-  PORT="${PORT:-8000}"
+HOST="${HOST:-}"
+PORT="${PORT:-}"
+if [ -z "$HOST" ] || [ -z "$PORT" ]; then
+  TTY=""
+  [ -c /dev/tty ] && TTY="/dev/tty"
+  if [ -n "$TTY" ]; then
+    [ -z "$HOST" ] && read -r -p ">> Bind host [0.0.0.0] (accepts localhost + LAN): " HOST < "$TTY"
+    HOST="${HOST:-0.0.0.0}"
+    [ -z "$PORT" ] && read -r -p ">> Bind port [8000]: " PORT < "$TTY"
+    PORT="${PORT:-8000}"
+  else
+    HOST="${HOST:-0.0.0.0}"
+    PORT="${PORT:-8000}"
+  fi
 fi
 
 echo ">> Checking Python..."
