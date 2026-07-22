@@ -1,6 +1,9 @@
 import asyncio
 import hashlib
 import json
+import os
+import re
+import subprocess
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -8,10 +11,37 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
 import httpx
 
-OWNER = "sadigaxund"
-REPO = "Resume"
-BRANCH = "main"
-API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents"
+def _git_get(key: str, default: str = "") -> str:
+    try:
+        out = subprocess.run(
+            ["git", "config", "--get", key],
+            capture_output=True, text=True, timeout=2
+        ).stdout.strip()
+        return out
+    except Exception:
+        return default
+
+def _detect_owner_repo() -> tuple[str, str]:
+    remote = _git_get("remote.origin.url")
+    m = re.match(r"(?:https://github\.com/|git@github\.com:)([^/]+)/([^/.]+)", remote)
+    return (m.group(1), m.group(2)) if m else ("", "")
+
+def _detect_branch() -> str:
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=2
+        ).stdout.strip()
+        return out or "main"
+    except Exception:
+        return "main"
+
+AUTHOR = os.getenv("AUTHOR", "")
+_detected_owner, _detected_repo = _detect_owner_repo()
+OWNER = os.getenv("GITHUB_OWNER") or _detected_owner or ""
+REPO = os.getenv("GITHUB_REPO") or _detected_repo or ""
+BRANCH = os.getenv("GITHUB_BRANCH") or _detect_branch()
+API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents" if OWNER and REPO else ""
 
 ROOT = Path(__file__).parent.parent
 ARCHIVE = ROOT / "Archive"
@@ -80,7 +110,7 @@ INDEX_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resume</title>
+<title>{TITLE}</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -177,7 +207,7 @@ INDEX_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
   <div class="toolbar">
-    <h1>Resume</h1>
+    <h1>{TITLE}</h1>
     <span class="hash-group">
       <span class="label">SHA:</span>
       <code id="hashDisplay"></code>
@@ -228,9 +258,11 @@ def _hash_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+_DATE_RE = re.compile(r"_(\d{4}-\d{2}-\d{2})\.pdf$")
+
 def _parse_date(name: str) -> str:
-    stem = name.removesuffix(".pdf")
-    return stem.replace("Template_Resumé_", "")
+    m = _DATE_RE.search(name)
+    return m.group(1) if m else ""
 
 
 def _label(name: str, date: str) -> str:
@@ -322,12 +354,15 @@ async def startup():
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
+    title = f"{AUTHOR} — Resume" if AUTHOR else "Resume"
     v = _find_sources()
     options = "\n".join(
         f'<option value="{k}">{_label(v["name"], v.get("date", ""))}</option>'
         for k, v in v.items()
     )
-    return INDEX_TEMPLATE.replace("{OPTIONS}", options).replace("{VERSIONS}", json.dumps(v))
+    html = INDEX_TEMPLATE.replace("{TITLE}", title)
+    html = html.replace("{OPTIONS}", options).replace("{VERSIONS}", json.dumps(v))
+    return html
 
 
 @app.get("/pdf/{filename:path}")

@@ -1,19 +1,28 @@
 #!/usr/bin/env bash
 set -e
 
+if [ $# -lt 1 ]; then
+  echo "Usage: $0 <template.tex>"
+  echo "Example: $0 template/Resume.tex"
+  exit 1
+fi
+
 cd "$(dirname "$0")/.."
 
-echo ">> Cleaning aux files..."
-rm -f Template_Resumé.aux Template_Resumé.log Template_Resumé.out \
-      Template_Resumé.fls Template_Resumé.fdb_latexmk Template_Resumé.synctex.gz \
-      Template_Resumé.xdv
+TEX_FILE="$1"
+STEM=$(basename "$TEX_FILE" .tex)
 
-echo ">> Compiling..."
+echo ">> Cleaning aux files..."
+rm -f "$STEM".aux "$STEM".log "$STEM".out \
+      "$STEM".fls "$STEM".fdb_latexmk "$STEM".synctex.gz \
+      "$STEM".xdv
+
+echo ">> Compiling $TEX_FILE..."
 latexmk -xelatex \
     -interaction=nonstopmode \
     -halt-on-error \
     -file-line-error \
     -outdir=. \
-    template/Template_Resumé.tex
+    "$TEX_FILE"
 
-echo ">> Built: Template_Resumé.pdf"
+echo ">> Built: ${STEM}.pdf"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-REPO_URL="https://github.com/sadigaxund/Resume.git"
+REPO_URL=""
 
 _read() {
   local var="$1" prompt="$2" default="$3"
@@ -29,6 +29,26 @@ PYTHON=$(command -v python3)
 if [ -z "$PYTHON" ]; then
   echo "Error: python3 not found. Install it first."
   exit 1
+fi
+
+# ---------------------------------------------------------------------------
+#  Repository URL
+# ---------------------------------------------------------------------------
+if [ -z "$REPO_URL" ]; then
+  if [ -n "$LOCAL" ]; then
+    REPO_URL=$(git remote get-url origin 2>/dev/null || true)
+  fi
+  if [ -z "$REPO_URL" ] && [ -n "$GITHUB_OWNER" ] && [ -n "$GITHUB_REPO" ]; then
+    REPO_URL="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}.git"
+  fi
+  if [ -z "$REPO_URL" ]; then
+    _read REPO_URL "GitHub clone URL" ""
+  fi
+  if [ -z "$REPO_URL" ]; then
+    echo "Error: could not determine repo URL."
+    echo "Set GITHUB_OWNER and GITHUB_REPO env vars, or run from a git clone."
+    exit 1
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -98,6 +118,10 @@ CPUQuota=50%
 MemoryMax=256M
 LimitNOFILE=1024
 Environment=PORT=${PORT}
+Environment=AUTHOR=${AUTHOR:-}
+Environment=GITHUB_OWNER=${GITHUB_OWNER:-}
+Environment=GITHUB_REPO=${GITHUB_REPO:-}
+Environment=GITHUB_BRANCH=${GITHUB_BRANCH:-}
 
 [Install]
 WantedBy=multi-user.target
