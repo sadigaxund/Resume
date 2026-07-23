@@ -59,6 +59,7 @@ jobs:
         with:
           root_file: template/${{ env.TEMPLATE }}
           latexmk_use_xelatex: true
+          work_in_root_file_dir: true
           extra_fonts: |
             template/fonts/*.ttf
 
@@ -69,7 +70,9 @@ jobs:
           PREFIX="${AUTHOR_STEM:-$STEM}"
           echo "PREFIX=$PREFIX" >> $GITHUB_ENV
           echo "STEM=$STEM" >> $GITHUB_ENV
-          cp "template/${STEM}.pdf" "${STEM}.pdf"
+          if [ ! -f "${STEM}.pdf" ]; then
+            cp "template/${STEM}.pdf" "${STEM}.pdf"
+          fi
 
       - name: Archive dated copy
         run: |
