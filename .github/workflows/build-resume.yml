@@ -1,4 +1,5 @@
 name: Build Resume
+run-name: Resume build
 
 on:
   push:
