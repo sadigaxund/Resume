@@ -13,7 +13,6 @@
 !README.md
 !TODO.md
 !template/resume.yml
-!tex-packages.txt
 !.github/workflows/*.yml
 
 # Re-ignore build artifacts even if matched above
