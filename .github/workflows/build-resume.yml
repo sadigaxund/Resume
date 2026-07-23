@@ -132,7 +132,7 @@ jobs:
           gh release view latest 2>/dev/null || \
             gh release create latest --title "Latest Resume" --notes "Built on $(date -u)"
 
-          # Helper: remove auto-attached source code archives (retries since GitHub generates them async)
+          # Helper: try to remove auto-attached source code archives (may fail if GitHub prevents deletion)
           strip_source_archives() {
             local tag="$1" attempt=1
             while [ $attempt -le 6 ]; do
@@ -147,6 +147,7 @@ jobs:
               fi
               attempt=$((attempt + 1))
             done
+            return 0  # Don't abort the script if cleanup fails
           }
 
           if [ "$CHANGED" = "1" ]; then
