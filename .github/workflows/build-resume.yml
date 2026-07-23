@@ -112,6 +112,8 @@ jobs:
           cp -f "${OUTPUT}.pdf" "Archive/${OUTPUT}_${DATE}.pdf"
 
       - name: Upload PDFs to Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release view resume 2>/dev/null || \
             gh release create resume --title "Resume PDFs" --notes "Automated builds"
