@@ -132,12 +132,21 @@ jobs:
           gh release view latest 2>/dev/null || \
             gh release create latest --title "Latest Resume" --notes "Built on $(date -u)"
 
-          # Helper: remove auto-attached source code archives
+          # Helper: remove auto-attached source code archives (retries since GitHub generates them async)
           strip_source_archives() {
-            local tag="$1"
-            gh release view "$tag" --json assets --jq \
-              '.assets[] | select(.name | startswith("Source code")) | .id' 2>/dev/null | \
-              while read -r id; do gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/$id"; done
+            local tag="$1" attempt=1
+            while [ $attempt -le 6 ]; do
+              sleep 5
+              ids=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${tag}" \
+                --jq '.assets[] | select(.name | startswith("Source code")) | .id' 2>/dev/null)
+              if [ -n "$ids" ]; then
+                echo "$ids" | while read -r id; do
+                  gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/$id"
+                done
+                return 0
+              fi
+              attempt=$((attempt + 1))
+            done
           }
 
           if [ "$CHANGED" = "1" ]; then
