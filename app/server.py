@@ -1,4 +1,3 @@
-import asyncio
 import hashlib
 import json
 import os
@@ -44,22 +43,10 @@ def _git_remote_repo() -> str:
     except Exception:
         return ""
 
-def _git_branch() -> str:
-    try:
-        out = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                             capture_output=True, text=True, timeout=2).stdout.strip()
-        return out or "main"
-    except Exception:
-        return "main"
-
 OWNER = CONFIG.get("owner") or os.getenv("GITHUB_OWNER") or _git_remote_owner() or ""
 REPO = CONFIG.get("repo") or os.getenv("GITHUB_REPO") or _git_remote_repo() or ""
-BRANCH = CONFIG.get("branch") or os.getenv("GITHUB_BRANCH") or _git_branch()
-API = f"https://api.github.com/repos/{OWNER}/{REPO}/contents" if OWNER and REPO else ""
 
-ARCHIVE = ROOT / "Archive"
 CACHE = Path.home() / ".cache" / "resume-server"
-ALLOWED_ROOTS = [str(ROOT.resolve()), str(CACHE.resolve())]
 MAX_FILENAME_BYTES = 200
 
 # --- rate limiter ---
@@ -282,99 +269,77 @@ def _label(name: str, date: str) -> str:
     return "Latest" if date == "_latest_" else date
 
 
-def _find_sources() -> dict:
-    seen: dict[str, Path] = {}
+_MANIFEST: list[dict] = []
+_MANIFEST_TS: float = 0
+_MANIFEST_TTL: float = 300
 
-    if CACHE.is_dir():
-        for f in CACHE.iterdir():
-            if f.suffix == ".pdf":
-                seen[f.name] = f
-
-    archive = ROOT / "Archive"
-    if archive.is_dir():
-        for f in sorted(archive.iterdir(), reverse=True):
-            if f.suffix == ".pdf" and f.name not in seen:
-                seen[f.name] = f
-
-    by_date: dict[str, tuple[str, Path]] = {}
-    for name, path in seen.items():
-        date = _parse_date(name)
-        if date not in by_date:
-            by_date[date] = (name, path)
-
-    dates = sorted(by_date.keys(), reverse=True)
-    if not dates:
-        return {}
-
-    latest_name, latest_path = by_date[dates[0]]
-    latest_hash = _hash_file(latest_path)
-
-    versions: dict = {}
-    versions["latest"] = {"name": latest_name, "url": f"/pdf/{latest_name}",
-                          "sha256": latest_hash, "date": "_latest_"}
-
-    for date in dates[1:]:
-        name, path = by_date[date]
-        h = _hash_file(path)
-        if h == latest_hash:
-            continue
-        versions[name] = {"name": name, "url": f"/pdf/{name}", "sha256": h, "date": date}
-
-    return versions
+async def _fetch_manifest() -> list[dict]:
+    global _MANIFEST, _MANIFEST_TS
+    now = time.time()
+    if now - _MANIFEST_TS < _MANIFEST_TTL:
+        return _MANIFEST
+    if not OWNER or not REPO:
+        return []
+    url = f"https://api.github.com/repos/{OWNER}/{REPO}/releases/tags/resume"
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+            r = await client.get(url, headers={"Accept": "application/vnd.github.v3+json"})
+            if r.status_code == 200:
+                data = r.json()
+                _MANIFEST = [
+                    {"name": a["name"], "url": a["browser_download_url"]}
+                    for a in data.get("assets", [])
+                    if a["name"].endswith(".pdf")
+                ]
+                _MANIFEST.sort(key=lambda a: a["name"], reverse=True)
+                _MANIFEST_TS = now
+    except Exception:
+        pass
+    return _MANIFEST
 
 
-async def _sync():
-    CACHE.mkdir(exist_ok=True)
-    cached = {f.name for f in CACHE.iterdir() if f.suffix == ".pdf"}
+MAX_CACHED = 10
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=httpx.Timeout(10, connect=5)) as client:
-        try:
-            resp = await client.get(f"{API}/Archive",
-                                    headers={"Accept": "application/vnd.github.v3+json"})
-            if resp.status_code == 200:
-                for item in resp.json():
-                    name = item["name"]
-                    if name.endswith(".pdf") and name not in cached:
-                        url = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/{BRANCH}/Archive/{name}"
-                        try:
-                            r = await client.get(url)
-                            r.raise_for_status()
-                            (CACHE / name).write_bytes(r.content)
-                            print(f"[resume-server] cached: {name}")
-                        except Exception as e:
-                            print(f"[resume-server] failed to fetch {name}: {e}")
-        except Exception as e:
-            print(f"[resume-server] couldn't list Archive from GitHub: {e}")
-
-    files = [(f, _parse_date(f.name)) for f in CACHE.iterdir() if f.suffix == ".pdf"]
-    if not files:
+def _evict():
+    if not CACHE.is_dir():
         return
-
-    files.sort(key=lambda x: x[1], reverse=True)
-    latest_path, latest_date = files[0]
-    latest_hash = _hash_file(latest_path)
-
-    for path, _ in files[1:]:
-        if _hash_file(path) == latest_hash:
-            path.unlink()
-            print(f"[resume-server] dedup: removed {path.name} (identical to latest {latest_path.name})")
-
-
-@app.on_event("startup")
-async def startup():
-    asyncio.create_task(_sync())
+    pdfs = sorted(
+        [f for f in CACHE.iterdir() if f.suffix == ".pdf"],
+        key=lambda f: f.stat().st_mtime
+    )
+    while len(pdfs) > MAX_CACHED:
+        pdfs[0].unlink(missing_ok=True)
+        pdfs.pop(0)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
     title = f"{AUTHOR} — Resume" if AUTHOR else "Resume"
-    v = _find_sources()
+    manifest = await _fetch_manifest()
+
+    cached_sha: dict[str, str] = {}
+    if CACHE.is_dir():
+        for f in CACHE.iterdir():
+            if f.suffix == ".pdf":
+                cached_sha[f.name] = _hash_file(f)
+
+    versions: dict = {}
+    for a in manifest:
+        key = a["name"]
+        date = _parse_date(key)
+        versions[key] = {
+            "name": key,
+            "url": f"/pdf/{key}",
+            "sha256": cached_sha.get(key, ""),
+            "date": "_latest_" if not date else date,
+        }
+
     options = "\n".join(
-        f'<option value="{k}">{_label(v["name"], v.get("date", ""))}</option>'
-        for k, v in v.items()
+        f'<option value="{k}">{_label(v["name"], v["date"])}</option>'
+        for k, v in versions.items()
     )
     html = INDEX_TEMPLATE.replace("{TITLE}", title)
-    html = html.replace("{OPTIONS}", options).replace("{VERSIONS}", json.dumps(v))
+    html = html.replace("{OPTIONS}", options).replace("{VERSIONS}", json.dumps(versions))
     return html
 
 
@@ -382,20 +347,37 @@ async def index():
 async def serve_pdf(filename: str):
     if len(filename.encode()) > MAX_FILENAME_BYTES or not filename.endswith(".pdf"):
         raise HTTPException(status_code=400)
-    path = None
+
     try:
-        path = (CACHE / filename).resolve()
-        if not path.is_file():
-            path = (ROOT / "Archive" / filename).resolve()
-    except (OSError, ValueError):
-        raise HTTPException(status_code=404)
-    if not path.is_file():
-        raise HTTPException(status_code=404)
-    if not any(str(path).startswith(base) for base in ALLOWED_ROOTS):
+        path = (CACHE / filename).resolve(strict=False)
+        path.relative_to(CACHE.resolve())
+    except (ValueError, OSError):
         raise HTTPException(status_code=403)
+
+    if path.is_file():
+        path.touch()
+        return FileResponse(str(path), media_type="application/pdf", filename=path.name,
+                            headers={"Content-Disposition": f'inline; filename="{path.name}"',
+                                     "Cache-Control": "no-cache, no-store, must-revalidate"})
+
+    manifest = await _fetch_manifest()
+    asset = next((a for a in manifest if a["name"] == filename), None)
+    if not asset:
+        raise HTTPException(status_code=404)
+
+    CACHE.mkdir(exist_ok=True)
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
+            r = await client.get(asset["url"])
+            r.raise_for_status()
+            path.write_bytes(r.content)
+    except Exception:
+        raise HTTPException(status_code=502)
+
+    _evict()
     return FileResponse(str(path), media_type="application/pdf", filename=path.name,
                         headers={"Content-Disposition": f'inline; filename="{path.name}"',
-                                   "Cache-Control": "no-cache, no-store, must-revalidate"})
+                                 "Cache-Control": "no-cache, no-store, must-revalidate"})
 
 
 @app.head("/")
