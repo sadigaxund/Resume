@@ -24,6 +24,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache TeX Live Docker image
+        uses: actions/cache@v4
+        id: cache-texlive
+        with:
+          path: /tmp/texlive-docker
+          key: texlive-full-1
+
+      - name: Load TeX Live image (cache hit)
+        if: steps.cache-texlive.outputs.cache-hit == 'true'
+        run: docker load -i /tmp/texlive-docker/image.tar
+
+      - name: Pull and save TeX Live image (cache miss)
+        if: steps.cache-texlive.outputs.cache-hit != 'true'
+        run: |
+          docker pull ghcr.io/xu-cheng/texlive-full:latest
+          mkdir -p /tmp/texlive-docker
+          docker save ghcr.io/xu-cheng/texlive-full:latest -o /tmp/texlive-docker/image.tar
+
       - name: Read config
         run: |
           pip install pyyaml -q
