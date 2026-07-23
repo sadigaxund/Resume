@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-REPO_URL=""
+REPO_URL="https://github.com/sadigaxund/Resume.git"
 
 _read() {
   local var="$1" prompt="$2" default="$3"
