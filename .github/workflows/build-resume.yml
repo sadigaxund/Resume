@@ -59,6 +59,8 @@ jobs:
         with:
           root_file: template/${{ env.TEMPLATE }}
           latexmk_use_xelatex: true
+          extra_fonts: |
+            template/fonts/*.ttf
 
       - name: Copy PDF to root
         run: |
