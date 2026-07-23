@@ -44,12 +44,6 @@ pip install -r app/requirements.txt
 uvicorn app.server:app --host 0.0.0.0 --port 8000
 ```
 
-### Version commit
-
-```bash
-./scripts/version-commit.sh template/YourResume.tex
-```
-
 ## CI
 
 The GitHub Actions workflow (`.github/workflows/build-resume.yml`) runs on every push to `template/`:
