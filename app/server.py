@@ -280,18 +280,33 @@ async def _fetch_manifest() -> list[dict]:
         return _MANIFEST
     if not OWNER or not REPO:
         return []
-    url = f"https://api.github.com/repos/{OWNER}/{REPO}/releases/tags/resume"
+    url = f"https://api.github.com/repos/{OWNER}/{REPO}/releases"
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
             r = await client.get(url, headers={"Accept": "application/vnd.github.v3+json"})
             if r.status_code == 200:
-                data = r.json()
-                _MANIFEST = [
-                    {"name": a["name"], "url": a["browser_download_url"]}
-                    for a in data.get("assets", [])
-                    if a["name"].endswith(".pdf")
-                ]
-                _MANIFEST.sort(key=lambda a: a["name"], reverse=True)
+                releases = r.json()
+                entries = []
+                for rel in releases:
+                    tag = rel.get("tag_name", "")
+                    if tag == "latest":
+                        for a in rel.get("assets", []):
+                            if a["name"].endswith(".pdf"):
+                                entries.append({
+                                    "name": a["name"],
+                                    "url": a["browser_download_url"],
+                                    "date": "",
+                                })
+                    elif tag.startswith("resume-"):
+                        date_part = tag[len("resume-"):]
+                        for a in rel.get("assets", []):
+                            if a["name"].endswith(".pdf"):
+                                entries.append({
+                                    "name": a["name"],
+                                    "url": a["browser_download_url"],
+                                    "date": date_part,
+                                })
+                _MANIFEST = entries
                 _MANIFEST_TS = now
     except Exception:
         pass
@@ -326,7 +341,7 @@ async def index():
     versions: dict = {}
     for a in manifest:
         key = a["name"]
-        date = _parse_date(key)
+        date = a.get("date", _parse_date(key))
         versions[key] = {
             "name": key,
             "url": f"/pdf/{key}",
