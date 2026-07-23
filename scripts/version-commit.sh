@@ -3,7 +3,7 @@ set -e
 
 if [ $# -lt 1 ]; then
   echo "Usage: $0 <template.tex> [commit message]"
-  echo "Example: $0 template/Template_Resumé.tex"
+  echo "Example: $0 template/Template_Resume.tex"
   exit 1
 fi
 
