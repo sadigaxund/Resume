@@ -4,21 +4,14 @@
 # Allow descending into directories
 !*/
 
-# Allow source + output
+# Allow source
 !*.tex
-!*.pdf
-
-# Allow scripts + repo config
 !*.sh
-!scripts/*.sh
 !.gitignore
 !template/icons/*
 !template/fonts/*.ttf
 !README.md
 !TODO.md
-!app/server.py
-!app/requirements.txt
-!app/config.json
 !template/resume.yml
 !tex-packages.txt
 !.github/workflows/*.yml
@@ -39,3 +32,4 @@ tmp/
 _cache/
 __pycache__/
 .claude/
+Archive/

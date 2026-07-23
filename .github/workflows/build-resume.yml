@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: build-resume
@@ -21,6 +23,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,25 +72,6 @@ jobs:
               env.write(f"OUTPUT={c.get('output', '')}\n")
           PYEOF
 
-      - name: Generate server config
-        run: |
-          python3 << 'PYEOF'
-          import json, os
-          config = {
-              'author': os.environ['AUTHOR'],
-              'owner': '${{ github.repository_owner }}',
-              'repo': '${{ github.event.repository.name }}',
-              'branch': '${{ github.ref_name }}',
-          }
-          with open('app/config.json', 'w') as f:
-              json.dump(config, f, indent=2)
-          PYEOF
-
-      - name: Update install.sh with repo URL
-        run: |
-          REPO_URL="https://github.com/${{ github.repository }}.git"
-          sed -i "s|^REPO_URL=.*|REPO_URL=\"${REPO_URL}\"|" install.sh
-
       - name: Compile PDF (XeLaTeX)
         uses: xu-cheng/latex-action@v3
         with:
@@ -126,7 +112,6 @@ jobs:
           NOTES_LATEST_VERIFIED=$(printf "Verified unchanged on %s\n\n[Download PDF](%s)" "$(date -u)" "$LATEST_URL")
           NOTES_DATED_VERIFIED=$(printf "Verified unchanged on %s\n\n[Download PDF](%s)" "$(date -u)" "$DATED_URL")
 
-          # Check hash BEFORE uploading (compare existing latest asset)
           TMPFILE=$(mktemp)
           CHANGED=1
           if gh release download latest -p "${OUTPUT}.pdf" -o "$TMPFILE" 2>/dev/null; then
@@ -136,12 +121,10 @@ jobs:
           fi
           rm -f "$TMPFILE"
 
-          # Always: ensure 'latest' release exists
           gh release view latest 2>/dev/null || \
             gh release create latest --title "Latest Resume" --notes "$NOTES_LATEST_BUILT"
 
           if [ "$CHANGED" = "1" ]; then
-            # Content changed: dated release first (prerelease), then latest
             gh release delete "$TAG_DATE" -y --cleanup-tag 2>/dev/null || true
             gh release create "$TAG_DATE" \
               --title "Resume ${DATE}" \
@@ -151,7 +134,6 @@ jobs:
             gh release upload latest "${OUTPUT}.pdf" --clobber
             gh release edit latest --latest --notes "$NOTES_LATEST_BUILT"
           else
-            # Content unchanged
             gh release upload latest "${OUTPUT}.pdf" --clobber
             gh release edit latest --latest --notes "$NOTES_LATEST_VERIFIED"
             LATEST_DATED=$(gh release list --limit 50 --json tagName --jq \
@@ -168,14 +150,59 @@ jobs:
             fi
           fi
 
-      - name: Commit config files
+      - name: Generate Pages site
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add install.sh app/config.json
-          if git diff --cached --quiet; then
-            echo "Nothing to commit."
-            exit 0
-          fi
-          git commit -m ">> Config update"
-          git push
+          mkdir -p public
+          cat > public/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>{{AUTHOR}} — Resume</title>
+          <style>
+            *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+            body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#525659;height:100vh;display:flex;flex-direction:column}
+            .toolbar{background:#1a1a1a;color:#fff;display:flex;align-items:center;padding:.5rem 1rem;gap:.75rem;flex-shrink:0}
+            .toolbar h1{font-size:1rem;font-weight:500}
+            select{padding:.4rem .5rem;border-radius:4px;border:1px solid #555;background:#333;color:#fff;font-size:.875rem;cursor:pointer}
+            select:focus{outline:none;border-color:#2563eb}
+            .btn{display:inline-block;padding:.4rem 1rem;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:.875rem;text-decoration:none;line-height:1.4;margin-left:auto}
+            .btn:hover{background:#1d4ed8}
+            .viewer{flex:1;display:flex;justify-content:center;overflow:auto}
+            .viewer object{width:100%;height:100%}
+          </style>
+          </head>
+          <body>
+          <div class="toolbar">
+            <h1>{{AUTHOR}} — Resume</h1>
+            <select id="versionSelect"></select>
+            <a class="btn" id="downloadBtn" href="#" download>Download</a>
+          </div>
+          <div class="viewer">
+            <object id="pdfViewer" type="application/pdf" width="100%" height="100%">
+              <p>Your browser doesn't support PDF viewing. <a id="fallbackLink" href="#">Download the resume</a>.</p>
+            </object>
+          </div>
+          <script>
+            const owner='{{OWNER}}',repo='{{REPO}}',viewer=document.getElementById('pdfViewer'),downloadBtn=document.getElementById('downloadBtn'),fallbackLink=document.getElementById('fallbackLink'),select=document.getElementById('versionSelect'),entries=[];
+            function loadVersion(e){viewer.data=e.url;downloadBtn.href=e.url;downloadBtn.download=e.name;if(fallbackLink)fallbackLink.href=e.url}
+            fetch('https://api.github.com/repos/'+owner+'/'+repo+'/releases').then(r=>r.json()).then(releases=>{for(const rel of releases){if(rel.tag_name==='latest'){for(const a of rel.assets||[]){if(a.name.endsWith('.pdf'))entries.push({label:'Latest',url:a.browser_download_url,name:a.name})}}else if(rel.tag_name.startsWith('resume-')){const d=rel.tag_name.slice(7);for(const a of rel.assets||[]){if(a.name.endsWith('.pdf'))entries.push({label:d,url:a.browser_download_url,name:a.name})}}}
+            entries.forEach((e,i)=>{const o=document.createElement('option');o.value=i;o.textContent=e.label;select.appendChild(o)});select.addEventListener('change',()=>loadVersion(entries[select.value]));if(entries.length)loadVersion(entries[0])}).catch(e=>console.error(e));
+          </script>
+          </body>
+          </html>
+          EOF
+          sed -i "s|{{AUTHOR}}|${AUTHOR}|g; s|{{OWNER}}|${{ github.repository_owner }}|g; s|{{REPO}}|${{ github.event.repository.name }}|g" public/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'public'
+
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
