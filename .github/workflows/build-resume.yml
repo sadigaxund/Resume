@@ -117,6 +117,13 @@ jobs:
         run: |
           DATE=$(date -u +%Y-%m-%d)
           TAG_DATE="resume-${DATE}"
+          BASE="https://github.com/${GITHUB_REPOSITORY}/releases/download"
+          LATEST_URL="${BASE}/latest/${OUTPUT}.pdf"
+          DATED_URL="${BASE}/${TAG_DATE}/${OUTPUT}_${DATE}.pdf"
+          NOTES_LATEST_BUILT=$(printf "Built on %s\n\n[Download PDF](%s)" "$(date -u)" "$LATEST_URL")
+          NOTES_DATED_BUILT=$(printf "Built on %s\n\n[Download PDF](%s)" "$(date -u)" "$DATED_URL")
+          NOTES_LATEST_VERIFIED=$(printf "Verified unchanged on %s\n\n[Download PDF](%s)" "$(date -u)" "$LATEST_URL")
+          NOTES_DATED_VERIFIED=$(printf "Verified unchanged on %s\n\n[Download PDF](%s)" "$(date -u)" "$DATED_URL")
 
           # Check hash BEFORE uploading (compare existing latest asset)
           TMPFILE=$(mktemp)
@@ -130,30 +137,30 @@ jobs:
 
           # Always: ensure 'latest' release exists
           gh release view latest 2>/dev/null || \
-            gh release create latest --title "Latest Resume" --notes "Built on $(date -u)"
+            gh release create latest --title "Latest Resume" --notes "$NOTES_LATEST_BUILT"
 
           if [ "$CHANGED" = "1" ]; then
             # Content changed: dated release first (prerelease), then latest
             gh release create "$TAG_DATE" \
               --title "Resume ${DATE}" \
               --prerelease \
-              --notes "Built on $(date -u)" \
+              --notes "$NOTES_DATED_BUILT" \
               "Archive/${OUTPUT}_${DATE}.pdf"
             gh release upload latest "${OUTPUT}.pdf" --clobber
-            gh release edit latest --latest --notes "Built on $(date -u)"
+            gh release edit latest --latest --notes "$NOTES_LATEST_BUILT"
           else
             # Content unchanged
             gh release upload latest "${OUTPUT}.pdf" --clobber
-            gh release edit latest --latest --notes "Verified unchanged on $(date -u)"
+            gh release edit latest --latest --notes "$NOTES_LATEST_VERIFIED"
             LATEST_DATED=$(gh release list --limit 50 --json tagName --jq \
               '[.[].tagName | select(startswith("resume-"))] | .[0] // empty' 2>/dev/null || true)
             if [ -n "$LATEST_DATED" ]; then
-              gh release edit "$LATEST_DATED" --notes "Verified unchanged on $(date -u)"
+              gh release edit "$LATEST_DATED" --notes "$NOTES_DATED_VERIFIED"
             else
               gh release create "$TAG_DATE" \
                 --title "Resume ${DATE}" \
                 --prerelease \
-                --notes "Built on $(date -u)" \
+                --notes "$NOTES_DATED_BUILT" \
                 "Archive/${OUTPUT}_${DATE}.pdf"
             fi
           fi
