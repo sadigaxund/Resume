@@ -128,32 +128,34 @@ jobs:
           fi
           rm -f "$TMPFILE"
 
-          # Always: ensure 'latest' release exists and upload
+          # Always: ensure 'latest' release exists
           gh release view latest 2>/dev/null || \
             gh release create latest --title "Latest Resume" --notes "Built on $(date -u)"
-          gh release upload latest "${OUTPUT}.pdf" --clobber
 
           if [ "$CHANGED" = "1" ]; then
-            # Content changed: create a new dated release
+            # Content changed: dated release first (prerelease), then latest
             gh release create "$TAG_DATE" \
               --title "Resume ${DATE}" \
+              --prerelease \
               --notes "Built on $(date -u)" \
               "Archive/${OUTPUT}_${DATE}.pdf"
-            gh release edit latest --notes "Built on $(date -u)"
+            gh release upload latest "${OUTPUT}.pdf" --clobber
+            gh release edit latest --latest --notes "Built on $(date -u)"
           else
-            # Content unchanged: update the most recent resume-* release's notes
+            # Content unchanged
+            gh release upload latest "${OUTPUT}.pdf" --clobber
+            gh release edit latest --latest --notes "Verified unchanged on $(date -u)"
             LATEST_DATED=$(gh release list --limit 50 --json tagName --jq \
               '[.[].tagName | select(startswith("resume-"))] | .[0] // empty' 2>/dev/null || true)
             if [ -n "$LATEST_DATED" ]; then
               gh release edit "$LATEST_DATED" --notes "Verified unchanged on $(date -u)"
             else
-              # No dated release exists yet — create one anyway
               gh release create "$TAG_DATE" \
                 --title "Resume ${DATE}" \
+                --prerelease \
                 --notes "Built on $(date -u)" \
                 "Archive/${OUTPUT}_${DATE}.pdf"
             fi
-            gh release edit latest --notes "Verified unchanged on $(date -u)"
           fi
 
       - name: Commit config files
