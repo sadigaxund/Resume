@@ -23,12 +23,6 @@ template: "YourResume.tex"
 
 3. **Push** — CI reads the config, builds the PDF, generates server config, and commits everything.
 
-### Build
-
-```bash
-./scripts/build.sh template/YourResume.tex
-```
-
 ### Serve with systemd
 
 ```bash
@@ -52,8 +46,8 @@ The GitHub Actions workflow (`.github/workflows/build-resume.yml`) runs on every
 2. Builds the PDF with XeLaTeX
 3. Generates `app/config.json` with your name + GitHub owner/repo/branch (from context)
 4. Updates `install.sh` with the correct clone URL
-5. Archives a dated copy: `Archive/YourName_2026-07-22.pdf`
-6. Commits everything
+5. Uploads the PDF to a `latest` release (always) and creates `resume-YYYY-MM-DD` releases on content change
+6. Commits `install.sh` and `app/config.json`
 
 ## License
 
