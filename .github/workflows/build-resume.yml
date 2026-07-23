@@ -33,6 +33,7 @@ jobs:
           with open(os.environ['GITHUB_ENV'], 'a') as env:
               env.write(f"AUTHOR={c.get('author', '')}\n")
               env.write(f"TEMPLATE={c.get('template', '')}\n")
+              env.write(f"OUTPUT={c.get('output', '')}\n")
           PYEOF
 
       - name: Generate server config
@@ -66,25 +67,28 @@ jobs:
       - name: Copy PDF to root
         run: |
           STEM=$(basename "${{ env.TEMPLATE }}" .tex)
-          AUTHOR_STEM=$(echo "${{ env.AUTHOR }}" | tr -d '[:space:]')
-          PREFIX="${AUTHOR_STEM:-$STEM}"
-          echo "PREFIX=$PREFIX" >> $GITHUB_ENV
+          OUTPUT="${{ env.OUTPUT }}"
+          [ -z "$OUTPUT" ] && OUTPUT="$STEM"
+          echo "OUTPUT=$OUTPUT" >> $GITHUB_ENV
           echo "STEM=$STEM" >> $GITHUB_ENV
           if [ ! -f "${STEM}.pdf" ]; then
             cp "template/${STEM}.pdf" "${STEM}.pdf"
+          fi
+          if [ "${STEM}.pdf" != "${OUTPUT}.pdf" ]; then
+            cp "${STEM}.pdf" "${OUTPUT}.pdf"
           fi
 
       - name: Archive dated copy
         run: |
           mkdir -p Archive
           DATE=$(date -u +%Y-%m-%d)
-          cp -f "${STEM}.pdf" "Archive/${PREFIX}_${DATE}.pdf"
+          cp -f "${OUTPUT}.pdf" "Archive/${OUTPUT}_${DATE}.pdf"
 
       - name: Commit build artifacts
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${STEM}.pdf" Archive/ install.sh app/config.json
+          git add "${OUTPUT}.pdf" Archive/ install.sh app/config.json
           if git diff --cached --quiet; then
             echo "Nothing to commit."
             exit 0

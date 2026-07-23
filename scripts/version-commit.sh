@@ -3,7 +3,7 @@ set -e
 
 if [ $# -lt 1 ]; then
   echo "Usage: $0 <template.tex> [commit message]"
-  echo "Example: $0 template/Resume.tex"
+  echo "Example: $0 template/Template_Resumé.tex"
   exit 1
 fi
 
@@ -11,19 +11,24 @@ cd "$(dirname "$0")/.."
 
 TEX_FILE="$1"
 STEM=$(basename "$TEX_FILE" .tex)
-PDF="${STEM}.pdf"
+
+OUTPUT=$(grep '^output:' template/resume.yml 2>/dev/null | sed 's/^output:[[:space:]]*//; s/"//g')
+[ -z "$OUTPUT" ] && OUTPUT="$STEM"
+PDF="${OUTPUT}.pdf"
 
 if [ ! -f "$PDF" ]; then
-    echo "!! $PDF not found. Build first: ./scripts/build.sh $TEX_FILE"
-    exit 1
+    STEM2=$(basename "$TEX_FILE" .tex)
+    if [ -f "${STEM2}.pdf" ]; then
+        cp "${STEM2}.pdf" "$PDF"
+    else
+        echo "!! $PDF not found. Build first: ./scripts/build.sh $TEX_FILE"
+        exit 1
+    fi
 fi
 
 mkdir -p Archive
 DATE=$(date +%Y-%m-%d)
-AUTHOR="${AUTHOR:-}"
-AUTHOR_STEM=$(echo "$AUTHOR" | tr -d '[:space:]')
-PREFIX="${AUTHOR_STEM:-$STEM}"
-ARCHIVED="Archive/${PREFIX}_${DATE}.pdf"
+ARCHIVED="Archive/${OUTPUT}_${DATE}.pdf"
 
 cp "$PDF" "$ARCHIVED"
 echo ">> Archived: $ARCHIVED"
