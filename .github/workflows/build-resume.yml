@@ -108,14 +108,30 @@ jobs:
           fi
           mkdir -p Archive
           DATE=$(date -u +%Y-%m-%d)
+          echo "DATE=$DATE" >> $GITHUB_ENV
           cp -f "${OUTPUT}.pdf" "Archive/${OUTPUT}_${DATE}.pdf"
 
       - name: Upload PDFs to Release
         run: |
           gh release view resume 2>/dev/null || \
             gh release create resume --title "Resume PDFs" --notes "Automated builds"
-          gh release upload resume "${OUTPUT}.pdf" --clobber
-          gh release upload resume "Archive/${OUTPUT}_${DATE}.pdf"
+
+          TMPFILE=$(mktemp)
+          CHANGED=1
+          if gh release download resume -p "${OUTPUT}.pdf" -o "$TMPFILE" 2>/dev/null; then
+            CURRENT=$(sha256sum "$TMPFILE" | cut -d' ' -f1)
+            NEW=$(sha256sum "${OUTPUT}.pdf" | cut -d' ' -f1)
+            [ "$CURRENT" = "$NEW" ] && CHANGED=0
+          fi
+          rm -f "$TMPFILE"
+
+          if [ "$CHANGED" = "1" ]; then
+            gh release upload resume "${OUTPUT}.pdf" --clobber
+            gh release upload resume "Archive/${OUTPUT}_${DATE}.pdf"
+            gh release edit resume --notes "Built on $(date -u)"
+          else
+            gh release edit resume --notes "Verified unchanged on $(date -u)"
+          fi
 
       - name: Commit config files
         run: |
