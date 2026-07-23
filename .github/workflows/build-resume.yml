@@ -141,6 +141,7 @@ jobs:
 
           if [ "$CHANGED" = "1" ]; then
             # Content changed: dated release first (prerelease), then latest
+            gh release delete "$TAG_DATE" -y --cleanup-tag 2>/dev/null || true
             gh release create "$TAG_DATE" \
               --title "Resume ${DATE}" \
               --prerelease \
@@ -157,6 +158,7 @@ jobs:
             if [ -n "$LATEST_DATED" ]; then
               gh release edit "$LATEST_DATED" --notes "$NOTES_DATED_VERIFIED"
             else
+              gh release delete "$TAG_DATE" -y --cleanup-tag 2>/dev/null || true
               gh release create "$TAG_DATE" \
                 --title "Resume ${DATE}" \
                 --prerelease \
