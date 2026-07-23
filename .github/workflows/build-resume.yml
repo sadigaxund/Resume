@@ -24,12 +24,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check TeX Live image digest
+        id: digest
+        run: |
+          DIGEST=$(docker manifest inspect ghcr.io/xu-cheng/texlive-full:latest 2>/dev/null | \
+            jq -r '
+              if .manifests then
+                [.manifests[] | select(.platform.arch == "amd64") | .digest][0] // .manifests[0].digest
+              elif .config then
+                .config.digest
+              else "" end' 2>/dev/null || echo "")
+          echo "digest=${DIGEST:-unknown}" >> "$GITHUB_OUTPUT"
+
       - name: Cache TeX Live Docker image
         uses: actions/cache@v4
         id: cache-texlive
         with:
           path: /tmp/texlive-docker
-          key: texlive-full-1
+          key: texlive-${{ steps.digest.outputs.digest }}
 
       - name: Load TeX Live image (cache hit)
         if: steps.cache-texlive.outputs.cache-hit == 'true'
