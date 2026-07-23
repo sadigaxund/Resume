@@ -132,6 +132,14 @@ jobs:
           gh release view latest 2>/dev/null || \
             gh release create latest --title "Latest Resume" --notes "Built on $(date -u)"
 
+          # Helper: remove auto-attached source code archives
+          strip_source_archives() {
+            local tag="$1"
+            gh release view "$tag" --json assets --jq \
+              '.assets[] | select(.name | startswith("Source code")) | .id' 2>/dev/null | \
+              while read -r id; do gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/$id"; done
+          }
+
           if [ "$CHANGED" = "1" ]; then
             # Content changed: dated release first (prerelease), then latest
             gh release create "$TAG_DATE" \
@@ -139,6 +147,7 @@ jobs:
               --prerelease \
               --notes "Built on $(date -u)" \
               "Archive/${OUTPUT}_${DATE}.pdf"
+            strip_source_archives "$TAG_DATE"
             gh release upload latest "${OUTPUT}.pdf" --clobber
             gh release edit latest --latest --notes "Built on $(date -u)"
           else
@@ -155,8 +164,10 @@ jobs:
                 --prerelease \
                 --notes "Built on $(date -u)" \
                 "Archive/${OUTPUT}_${DATE}.pdf"
+              strip_source_archives "$TAG_DATE"
             fi
           fi
+          strip_source_archives latest
 
       - name: Commit config files
         run: |
