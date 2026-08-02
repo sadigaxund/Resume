@@ -177,12 +177,11 @@
 \jobheading{icons/saudi_tourism.png}{Ministry of Tourism, Kingdom of Saudi Arabia}{Riyadh, Saudi Arabia (Remote)}{Data Engineer}{Jun 2023 -- Aug 2025}
 \begin{itemize}
     \small
-    \item Designed multi-source OTA ingestion: extraction scripts published to \textbf{Apache Kafka} on standardized topics (which decoupled ingest from transform and allowed replay), consumed by \textbf{Spark} pipelines orchestrated through Fyrefuse, landing in a \textbf{MS SQL Server} warehouse.
+    \item Standardized ingestion for unreliable OTA providers with \textbf{CDC-style incremental extraction} feeding \textbf{Spark} pipelines (via Fyrefuse) into the \textbf{MS SQL Server} warehouse, tracking schema evolution in \textbf{Kafka Schema Registry} to catch drift early, backed by automated data-quality checks, rate-limit backoff, and dead-letter queues that eliminated manual intervention on failed loads.
     \item Modeled the warehouse schema for \textbf{80M+ customer reviews} and multi-year listing metadata across \textbf{18 business-critical tables}, using dimensional modeling and slowly-changing-dimension patterns to support national tourism analytics.
-    \item Engineered adaptive error handling for unreliable OTA providers (rate-limit backoff, schema drift detection, dead-letter queue), so failed loads no longer needed manual intervention.
-    \item Owned ETL workflow governance in \textbf{Dataiku}: parameter file management, log auditing, and pipeline observability across all ingestion jobs.
+    \item Owned the \textbf{Snowflake} account brokering the data-delivery SLA between the Ministry and its upstream data broker, monitoring ingestion timeliness and verifying completeness and freshness against contract terms.
 \end{itemize}
-\stackline{Stack}{Apache Spark, Kafka, MS SQL Server, Dataiku, RHEL}
+\stackline{Stack}{Apache Spark, Kafka, MS SQL Server, Snowflake, RHEL}
 
 \jobheading{icons/KDM.jpg}{KDM Force}{Rome, Italy}{Data Engineer (Remote)}{Jun 2022 -- Nov 2025}
 \begin{itemize}
@@ -190,8 +189,9 @@
     \item Researched and integrated \textbf{Apache Iceberg, Hive Metastore, Trino, PostgreSQL, and Apache Spark} into the in-house Fyrefuse platform, which let users run federated lakehouse queries over object storage without re-ingesting to the warehouse.
     \item Built a \textbf{viewport-aware caching layer} between the application frontend and Trino-backed sources that preloads pages around the user's scroll window in both directions, so multi-million-row CSV-style tables load with no perceived wait.
     \item Selected \textbf{PostgreSQL} over Redis as the cache backend after benchmarking: Redis covered only key-value access while users needed sort, filter, aggregation, and full-text search; Postgres delivered all four plus \textbf{sub-second write times for 1M records} after switching the ingest path from \texttt{INSERT}/bulk-insert to \textbf{\texttt{COPY}}.
+    \item Built \textbf{CI/CD} pipelines for Fyrefuse services, containerized with \textbf{Docker} and deployed to \textbf{Kubernetes}; provisioned platform infrastructure on \textbf{GCP} via \textbf{Terraform} for reproducible dev, staging, and production environments.
 \end{itemize}
-\stackline{Stack}{Apache Iceberg, Trino, Hive Metastore, PostgreSQL, Redis}
+\stackline{Stack}{Apache Iceberg, Trino, Hive Metastore, PostgreSQL, Redis, Docker, Kubernetes, Terraform, GCP}
 
 \jobheading{icons/unibank.png}{Unibank}{Baku, Azerbaijan}{Data Engineer (Intern)}{Oct 2021 -- May 2022}
 \begin{itemize}
