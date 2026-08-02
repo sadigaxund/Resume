@@ -174,7 +174,7 @@
 %-------- EXPERIENCE --------
 \section{Experience}
 
-\jobheading{icons/saudi_tourism.png}{Ministry of Tourism, Kingdom of Saudi Arabia}{Riyadh, Saudi Arabia (Remote)}{Data Engineer}{Jun 2023 -- Aug 2025}
+\jobheading{icons/saudi_tourism.png}{Ministry of Tourism, Kingdom of Saudi Arabia}{Riyadh, Saudi Arabia}{Data Engineer (Remote)}{Jun 2023 -- Aug 2025}
 \begin{itemize}
     \small
     \item Standardized ingestion for unreliable OTA providers with \textbf{CDC-style incremental extraction} feeding \textbf{Spark} pipelines (via Fyrefuse) into the \textbf{MS SQL Server} warehouse, tracking schema evolution in \textbf{Kafka Schema Registry} to catch drift early, backed by automated data-quality checks, rate-limit backoff, and dead-letter queues that eliminated manual intervention on failed loads.
@@ -215,14 +215,12 @@
 %-------- PROJECTS --------
 \section{Projects}
 
-\iconentry{icons/aqueduct.png}{\textbf{Aqueduct} \textcolor{subtle}{$\cdot$ Declarative Spark engine with agentic self-healing} \quad \href{https://github.com/sadigaxund/Aqueduct}{\faGithub\ GitHub}}{Feb 2026 -- Present}
+\iconentry{icons/aqueduct.png}{\textbf{Aqueduct} \textcolor{subtle}{$\cdot$ Self-healing declarative data pipelines (Spark/DuckDB)} \quad \href{https://github.com/sadigaxund/Aqueduct}{\faGithub\ GitHub}}{Feb 2026 -- Present}
 \begin{itemize}
     \small
-    \item Designed and shipped a \textbf{declarative pipeline engine} (Parser $\rightarrow$ Compiler $\rightarrow$ Executor $\rightarrow$ Surveyor) replacing imperative PySpark with version-controlled YAML Blueprints. Released \textbf{1.0.0 to PyPI} as \href{https://pypi.org/project/aqueduct-core/}{\texttt{aqueduct-core}}.
-    \item Built a multi-provider \textbf{LLM self-healing agent loop} that diagnoses failed Spark runs from a structured \texttt{FailureContext} and emits validated patches via a \textbf{10-op PatchSpec grammar}; deterministic guardrails and provenance-aware prompts cut hallucination.
-    \item Shipped \textbf{Apache Airflow integration}: drop-in \texttt{AqueductOperator} + deferred-pattern sensors; supports human/CI healing modes via structured exit codes. Replaces the imperative-Spark layer underneath existing orchestration.
-    \item Added \textbf{zero-overhead observability}: pipeline health, performance metrics, and column-level data lineage tracked automatically through Spark's native instrumentation hooks and an embedded analytical database.
-    \item Implemented \textbf{pluggable persistence} (DuckDB, Postgres, Redis behind a Store API), multi-cloud secrets dispatch (AWS / GCP / Azure), structured Spark error extraction, and a 2-tier benchmark harness for prompt regression detection in CI.
+    \item Designed and shipped a \textbf{declarative pipeline engine}: version-controlled YAML Blueprints compiled to run on \textbf{Apache Spark or DuckDB} from the same file, replacing hand-written PySpark. Released to PyPI as \href{https://pypi.org/project/aqueduct-core/}{\texttt{aqueduct-core}}.
+    \item Built an \textbf{LLM self-healing agent} that diagnoses failed pipeline runs and proposes a structured, Git-diffable patch, gated through guardrail, lineage, and sandbox checks before it ever touches a pipeline; repeat failures heal from memory with zero LLM calls.
+    \item Added \textbf{Apache Airflow integration}, compile-time \textbf{column-level data lineage}, and a queryable observability store with a local dashboard for fleet-wide run and healing history.
 \end{itemize}
 \stackline{Acquired Skills}{Apache Spark, Apache Airflow, DSL \& Compiler Design, LLM Agents, Prompt Engineering, DuckDB, Data Lineage, Platform Engineering, Open-Source Maintainership}
 
