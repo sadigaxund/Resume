@@ -1,5 +1,5 @@
-variant: general
-label: General
-author: "John Doe"
+variant: DataEngineer
+label: DataEngineer
+author: "Sadig Akhund"
 template: "Template_Resume.tex"
-output: "JohnDoe_General"
+output: "SadigAkhund_DataEngineer_Resume"
