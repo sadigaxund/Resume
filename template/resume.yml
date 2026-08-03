@@ -1,5 +1,5 @@
 variant: DataEngineer
-label: DataEngineer
+label: "Data Engineer"
 author: "Sadig Akhund"
 template: "Template_Resume.tex"
 output: "SadigAkhund_DataEngineer_Resume"
